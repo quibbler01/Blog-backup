@@ -1,0 +1,11 @@
+{
+    "name": "【自丢网】站点关键词",
+    "brief": "<a href='http://www.zidiu.com' target='_blank'>【自丢网zidiu.com】</a>填入站点关键词，建议5个关键词内，不要多。<a href='http://wpa.qq.com/msgrd?v=3&uin=515138&site=qq&menu=yes' target='_blank'>QQ：515138</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

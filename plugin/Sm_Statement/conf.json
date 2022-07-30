@@ -1,0 +1,11 @@
+{
+    "name": "SM文章尾部自定义",
+    "brief": "文章尾部自定义<br />(FOR 4.0.4正式版)",
+    "version": "1.0",
+    "bbs_version": "4.0.4",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

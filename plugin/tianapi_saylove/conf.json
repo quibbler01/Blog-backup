@@ -1,0 +1,10 @@
+{
+    "name": "土味情话",
+    "brief": "在侧栏随机显示土味情话，数据来自天行数据。",
+    "version": "1.0",
+    "bbs_version": "4.0.3",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": [],
+    "dependencies": "天行数据"
+}

@@ -1,0 +1,37 @@
+<?php $popup = kv_get('nciaer_popup');?>
+<div id = "popup_text" style = "display: none;"><?php echo htmlspecialchars_decode($popup['content']);?></div>
+<script src="plugin/nciaer_popup/layer/layer.js"></script>
+<script>
+    if(!$.cookie('nciaer_popup')) {
+        layer.open({
+            type: 0,
+            title: "<?php echo $popup['title'];?>",
+            content: $('#popup_text').html(),
+            skin: '',
+            btn: "<span style = 'color: #FFF;'><?php echo $popup['btntext'];?></span>",
+            yes: function (index) {
+                layer.close(index);
+
+                <?php if($popup['showmode'] == 1):?>
+                    $.cookie('nciaer_popup', 1);
+                <?php elseif($popup['showmode'] == 2):
+                    $time = 86400 * 3;
+                ?>
+                    $.cookie('nciaer_popup', 1, <?php echo $time;?>);
+                <?php
+                    elseif($popup['showmode'] == 3):
+                    $time = 86400 * 7;
+                ?>
+                    $.cookie('nciaer_popup', 1, 86400 * 7);
+                <?php
+                    endif;
+                ?>
+
+            },
+            closeBtn: 0,
+            time: 0,
+            anim: "<?php echo $popup['anim'];?>",
+        });
+    }
+
+</script>

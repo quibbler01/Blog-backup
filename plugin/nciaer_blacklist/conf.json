@@ -1,0 +1,11 @@
+{
+    "name": "会员黑名单",
+    "brief": "<b>简介：</b>会员被加入黑名单后，无法浏览你的贴子<br /><b>作者：</b>硬汉工作室<br /><b>定制：</b>插件定制需求请联系客服QQ：1069971363<br />更多插件请访问：<b><a target = '_blank' href = 'http://www.nciaer.com'>www.nciaer.com</a></b>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 0,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

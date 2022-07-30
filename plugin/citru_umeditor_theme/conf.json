@@ -1,0 +1,10 @@
+{
+    "name": "Umeditor美化",
+    "brief": "Umeditor（百度编辑器）工具栏常用图标美化，<a href='http://citru.cn/thread-19.htm'>自定义工具栏教程</a>，全部可用图标体验：<a href='http://citru.cn'>Citru.cn</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "dependencies": []
+}

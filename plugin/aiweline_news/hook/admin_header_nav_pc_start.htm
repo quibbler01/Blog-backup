@@ -1,0 +1,21 @@
+<?php 
+if(!isset($aiweline_menu)){
+  $aiweline_menu = array(
+      'aiweline' => array(
+          'url' => url('aiweline'), 
+          'text' => 'AiWeLine', 
+          'icon' => 'icon-news',
+          'tab' => array (
+           'url' => url('news'), 
+           'text' => '新闻头条', 
+           'icon' => 'icon-news',
+          )
+      )
+  );
+}else{
+   array_push($aiweline_menu['aiweline']['tab'],array('url' => url('news'), 'text' => '新闻头条', 'icon' => 'icon-news'));
+}
+$menu = array_merge($menu, $aiweline_menu);
+?>
+
+

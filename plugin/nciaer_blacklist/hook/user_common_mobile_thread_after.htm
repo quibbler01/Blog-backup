@@ -1,0 +1,8 @@
+<?php
+    if(db_find_one('nciaer_blacklist', array('uid' => $user['uid'], 'blackuid' => $_uid))) {
+$text = '移出黑名单';
+} else {
+$text = '加入黑名单';
+}
+?>
+<a role = "button" href="<?php echo url("blacklist-{$_uid}");?>" class="btn btn-secondary"><?php echo $text;?></a>

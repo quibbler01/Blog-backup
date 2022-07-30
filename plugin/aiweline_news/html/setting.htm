@@ -1,0 +1,379 @@
+<?php include _include(ADMIN_PATH.'view/htm/header.inc.htm'); ?>
+
+<?php include _include(AIWELINE_NEWS_HTML.'common/tab.htm'); ?>
+
+<div class="row mt-3">
+    <div class="col-sm-12">
+        <div class="panel panel-primary tab-pane">
+            <div class="panel-heading">
+                <h3 class="panel-title">新闻设置</h3>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <!--<link rel="stylesheet"
+                          href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+                    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+                    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+                    <div>
+                        <div style="float: left">
+                            <b style="color: red">严重警告：如果不懂，请使用默认配置。想尝试切换其他Api导入数据的，不要在生产模式下测试Api对应的映射规则导入实验。否则后果自负。</b>
+                        </div>
+                        <div style="float: right">
+                            已导入<?php echo isset($aiweline_news_conf['news_count'])?$aiweline_news_conf['news_count']:0 ?>
+                            条新闻。
+                        </div>
+                    </div>
+                    <br>
+                    <hr class="mx-0 my-1 mb-4"/>
+                    <div>
+                        <div style="float: left">
+                            <b style="color: red">温馨提示：将<?php echo WEBSITE.'?aiweline_news_pull';?>
+                                加入定时任务，便可实现新闻自动添加。</b>
+                        </div>
+                        <div style="float: right">
+                            <form action="<?php echo WEBSITE.'admin/'.url('aiweline_news-pull');?>" method="post">
+                                <button type="submit" class="btn btn-primary btn-block mb-3 mr-0">导入今日头条</button>
+                            </form>
+                        </div>
+                    </div>
+                    <br>
+                    <br>
+                    <hr class="mx-0 my-1 mb-4"/>
+                    <form action="<?php echo WEBSITE.'admin/'.url('aiweline_news');?>" method="post" id="formcreate">
+                        <input type="hidden" name="news_count"
+                               value="<?php echo isset($aiweline_news_conf['news_count'])?$aiweline_news_conf['news_count']:0 ?>">
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                新闻Api：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10">
+                                        <input name="api"
+                                               value="<?php echo isset($aiweline_news_conf['api'])?$aiweline_news_conf['api']:'';?>"
+                                               type="text"
+                                               class="form-control" id="api" placeholder="请输入新闻APi">
+                                        <div class="figure-caption mt-2">
+                                            <b style="color: orangered">提示：</b>如果重复执行Api导入，将自动过滤重复新闻。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                开启新闻首页显示：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10 ">
+                                        <select name="show_in_index" class="form-control">
+                                            <?php if($aiweline_news_conf['show_in_index']==1){ ?>
+                                            <option value="1" selected>显示</option>
+                                            <option value="0">隐藏</option>
+                                            <?php }else{?>
+                                            <option value="1">显示</option>
+                                            <option value="0" selected>隐藏</option>
+                                            <?php } ?>
+                                        </select>
+                                        <div class="figure-caption mt-2">
+                                            <b style="color: orangered">提示：</b>由于一次性发布新闻太多，首页显示不利于网站发展，因此默认关闭。<b>如果未成功隐藏，说明别的插件与此插件存在冲突</b>。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                代发用户ID：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10">
+                                        <input name="uid"
+                                               value="<?php echo isset($aiweline_news_conf['uid'])?$aiweline_news_conf['uid']:'';?>"
+                                               type="text"
+                                               class="form-control" id="uid" placeholder="请输入用户ID">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                发送栏目ID：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10">
+                                        <input name="fid"
+                                               value="<?php echo isset($aiweline_news_conf['fid'])?$aiweline_news_conf['fid']:'';?>"
+                                               type="text"
+                                               class="form-control" id="fid" placeholder="请输入新闻栏目分类ID">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                网页正则匹配提取：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10">
+                                        <label for="pattern">
+<textarea name="pattern" class="form-control" cols="100" rows="4" id="pattern">
+    <?php echo $aiweline_news_conf['pattern'];?>
+</textarea>
+                                        </label>
+                                        <div class="figure-caption mt-2">
+                                            <b style="color: orangered">注意：</b>如果遇到网页类型url时，提取内容的正则。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                剔除规则：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10">
+                                        <label for="not_pattern">
+<textarea name="not_pattern" class="form-control" cols="100" rows="4" id="not_pattern">
+    <?php echo $aiweline_news_conf['not_pattern'];?>
+</textarea>
+                                        </label>
+                                        <div class="figure-caption mt-2">
+                                            使用后接 <b style="color: orangered">”=>“</b>符号隔开多条排除规则。
+                                            <br><b style="color: orangered">注意：</b>如果遇到网页类型url时，提取内容中存在不想要的数据时使用此规则剔除。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                属性替换规则：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10">
+                                        <label for="replace_rules">
+<textarea name="replace_rules" class="form-control" cols="100" rows="4" id="replace_rules">
+    <?php echo $aiweline_news_conf['replace_rules'];?>
+</textarea>
+                                        </label>
+                                        <div class="figure-caption mt-2">
+                                            使用 <b style="color: orangered">”=>“</b>符号替换到后者字符串，以<b style="color: orangered">”,“</b>隔开每一对规则。
+                                            <br><b style="color: orangered">注意：</b>处理网页中的一些特殊替换。例如：遇到网页中存在data-src类似的属性时，可能导致图片无法显示，将data-src替换为src。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                是否下载文件到本地：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10 ">
+                                        <select name="download" class="form-control">
+                                            <?php if($aiweline_news_conf['download']==1){ ?>
+                                            <option value="1" selected>允许下载</option>
+                                            <option value="0">不允许下载</option>
+                                            <?php }else{?>
+                                            <option value="1">允许下载</option>
+                                            <option value="0" selected>不允许下载</option>
+                                            <?php } ?>
+                                        </select>
+                                        <div class="figure-caption mt-2">
+                                            <b style="color: orangered">注意：</b>如果允许下载，在遇到文件类型的url时，会下载到本地服务器。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label text-md-right pr-0">
+                                导入Map映射：
+                            </label>
+                            <div class="col-sm-10">
+                                <div class="form-group">
+                                    <div class="col-sm-10">
+                                        <label for="map">
+                                            <textarea name="map" cols="100" rows="8" id="map">
+                                                <?php $map_str = isset($aiweline_news_conf['map'])?$aiweline_news_conf['map']:'';
+                                                $map = json_decode($map_str,true);//转为数组
+                                                echo json_encode($map,JSON_PRETTY_PRINT);//格式化输出?>
+                                            </textarea>
+                                        </label>
+                                        <div class="figure-caption mt-2">
+                                            <br>
+                                            因为不同的api返回的json结构不一致，所以需要映射导入数据库中。<br>
+                                            json结构实例：<br>
+                                            {<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"code":"code",<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"msg":"msg",<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"data":"data",<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"data_filter":"tech,auto",<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"db_fields_map":"title=>subject,picInfo@url__link__digest__source=>message",<br>
+                                            &nbsp;&nbsp;&nbsp;&nbsp;"allow_image_type":"jpg,png"<br>
+                                            }<br>
+                                            <b style="color: #0b505a">
+                                                <i style="color: orangered">多个字段合并用法示例：</i>
+                                                <br>picInfo@url__link=>message
+                                                <br>意为将{"picInfo":{"ref":"","url":"https://..."},"link":"https://..."}
+                                                <br>中的picInfo的属性url+link按照顺序合并后存到数据库中的message字段中。
+                                            </b>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-2 form-control-label"></label>
+                            <div class="col-sm-2">
+                                <button type="submit" class="btn btn-primary btn-block mb-3 mr-0"
+                                        id="submit"><?php echo lang('save');?></button>
+                            </div>
+                            <div class="col-sm-2">
+                                <a role="button" class="btn btn-secondary btn-block mb-3"
+                                   href="javascript:history.back();"><?php echo lang('back');?></a>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="panel-body">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>
+                                    编号
+                                </th>
+                                <th>
+                                    参数
+                                </th>
+                                <th>
+                                    解释
+                                </th>
+                                <th>
+                                    缺省实例
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>
+                                    1
+                                </td>
+                                <td>
+                                    code
+                                </td>
+                                <td>
+                                    返回的json数据中，标识状态码字段。<b style="color: orangered"><br>提示：哪个字段是用来做状态码的字段就填写那个字段。</b>
+                                </td>
+                                <td>
+                                    {...,code:200,...}
+                                </td>
+
+                            </tr>
+                            <tr class="success">
+                                <td>
+                                    2
+                                </td>
+                                <td>
+                                    msg
+                                </td>
+                                <td>
+                                    如果返回的json数据中的消息字段。<br><b style="color: orangered">提示：哪个字段是用来做提示消息的字段就填写那个字段。</b>
+                                </td>
+                                <td>
+                                    {...,msg:'成功！',...}
+                                </td>
+                            </tr>
+                            <tr class="error">
+                                <td>
+                                    3
+                                </td>
+                                <td>
+                                    data
+                                </td>
+                                <td>
+                                    返回的json数据所在字段。<br><b style="color: orangered">提示：哪个字段里包含着你想要的数据，就填哪个字段。</b>
+                                </td>
+                                <td>
+                                    {...,data:{...},...}
+                                </td>
+                            </tr>
+                            <tr class="warning">
+                                <td>
+                                    4
+                                </td>
+                                <td>
+                                    data_filter
+                                </td>
+                                <td>
+                                    如果返回的json数据中的data主要数据还存在多个分类.<br>而你就需要这个参数来进行选择分类导入。
+                                    <br><b style="color: orangered">提示：如果没有data_map属性,或者data_map属性值为“*”，则全部导入。</b>
+                                </td>
+                                <td>
+                                    data:{'tech':[...],'auto':[...]}
+                                </td>
+                            </tr>
+                            <tr class="info">
+                                <td>
+                                    5
+                                </td>
+                                <td>
+                                    db_fields_map
+                                </td>
+                                <td>
+                                    数据库字段映射。
+                                    <br><b style="color: orangered">提示：</b>与数据库表字段真正的字段映射。<br>
+                                    其中name属性是要映射的数据来源字段，<br>
+                                    若是存在多个属性映射到一个字段，请使用“__”号链接。<br>
+                                </td>
+                                <td>
+                                    {<br>
+                                    &emsp;&emsp;"title":'斗鱼封停\"萝莉音\"奶奶 可她已赚足了钱',<br>
+                                    &emsp;&emsp;"source": "态℃",<br>
+                                    &emsp;&emsp;"link": "https://3g.163.com/...9D8.html",<br>
+                                    &emsp;&emsp;"digest": "作者|网易科技",<br>
+                                    &emsp;&emsp;"category": "科技",<br>
+                                    &emsp;&emsp;"picInfo": [<br>
+                                    &emsp;&emsp;&emsp;&emsp;{<br>
+                                    &emsp;&emsp;&emsp;&emsp;"ref": null,<br>
+                                    &emsp;&emsp;&emsp;&emsp;"width": null,<br>
+                                    &emsp;&emsp;&emsp;&emsp;"url": "http://..adsa.png",<br>
+                                    &emsp;&emsp;&emsp;&emsp;"height": null <br>
+                                    &emsp;&emsp;&emsp;&emsp;}<br>
+                                    &emsp;&emsp;],<br>
+                                    }
+                                </td>
+                            </tr>
+                            <tr class="warning">
+                                <td>
+                                    6
+                                </td>
+                                <td>
+                                    allow_image_type
+                                </td>
+                                <td>
+                                    网页中存在图片时，如果要下载图片，则指定允许通过的图片类型。
+                                </td>
+                                <td>
+                                    {...,"allow_image_type":"jpg,png",...}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php include _include(AIWELINE_NEWS_HTML.'common/footer.htm'); ?>
+

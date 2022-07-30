@@ -1,0 +1,11 @@
+{
+    "name": "右侧信息滚动到顶部自动固定",
+    "brief": "当页面滚动到下方时，让右侧栏，自动锁定在顶部，不跟着再滚动了",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

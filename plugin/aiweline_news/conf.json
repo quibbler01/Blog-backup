@@ -1,0 +1,11 @@
+{
+    "name": "新闻头条",
+    "brief": "作者：<a href='https://www.baidu.com/s?ie=UTF-8&wd=%E7%A7%8B%E6%9E%AB%E9%9B%81%E9%A3%9E' style='color:blue' target='_blank'>秋枫雁飞</a><br> 来源网：<a href='https://bbs.aiweline.com' style='color:blue' target='_blank'>bbs.aiweline.com</a>   <br> 主要功能：为指定新闻栏目提供新闻数据。<br> 强悍的map映射导入，其实还能导入很多Api数据。",
+    "version": "1.0",
+    "bbs_version": "4.0.4",
+    "installed": 0,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

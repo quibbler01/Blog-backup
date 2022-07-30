@@ -1,0 +1,16 @@
+<?php
+$tianapi_apikey = kv_get('apikey');
+$get_tianapi=file_get_contents('http://api.tianapi.com/txapi/mingyan/?key='.$tianapi_apikey);
+$mingyan=json_decode($get_tianapi,true);
+$mingyan_content = $mingyan['code'] == 200?$mingyan['newslist'][0]['content'].' - '.$mingyan['newslist'][0]['author']:'数据读取失败，请检查该插件的apikey';
+?>
+<div class="card">
+    <div class="card-header">
+        名人名言
+    </div>
+    <div class="card-footer">
+        <?php echo $mingyan_content;?>
+    </div>
+</div>
+
+

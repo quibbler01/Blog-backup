@@ -1,0 +1,157 @@
+<?php
+
+session_start();
+
+if(isset($_POST['password']) && $_POST['password'] == 'admin'){
+
+   $_SESSION['ok'] = 1;
+
+   header('location:?');
+
+}
+
+if(!isset($_SESSION['ok'])){
+
+   exit('
+
+<style type="text/css">
+
+.container{overflow:hidden;margin:4px auto;}
+
+.container .content{max-width: 100%;width: 600px;margin: 0 auto;overflow: hidden;}
+
+.new-content{}
+
+.new-content .new-pw{position:relative;overflow:hidden;margin-top:13px;padding:15px;background:rgb(247, 247, 247);}
+
+.new-title{position: relative;height: 45px;border-bottom: 1px solid #5298ff;text-indent: 21px;font-size: 16px;line-height: 35px;font-weight: 600;color: #2196f3;}
+
+.new-title:after{position:absolute;top:8px;left:0;width:0;height:17px;border:1.5px solid #5298ff;border-radius:9px;content:" ";}
+
+<style>
+
+h1{ color:red;}
+
+h2{color:green;}
+
+h3{color:blue;}
+
+h4{color:blue;font-size:50px}
+
+*{ box-sizing: border-box;}
+
+		
+
+ div.search {padding: 30px 0;}	
+
+        form {
+
+            position: relative;
+
+            width: 300px;
+
+            margin: 0 auto;
+
+        }
+
+        input, button {
+
+            border: none;
+
+            outline: none;
+
+			color: red;
+
+        }
+
+        input {
+
+            width: 70px;
+
+            height: 30px;
+
+        }
+
+       /*密码框*/
+
+        .bar6 {background: 00FFFF;}
+
+        .bar6 input {
+
+            border: 2px solid #FF0000;
+
+            border-radius: 5px;
+
+            background: transparent;
+
+            top: 0;
+
+            right: 0;
+
+        }
+
+        .bar6 button {
+
+            background:#FF0000;
+
+            border-radius: 0 5px 5px 0;
+
+            width: 60px;
+
+            top: 0;
+
+            right: 0;
+
+        }
+
+        .bar6 button:before {
+
+            content: "密码框";
+
+            color: #0F0F0F;
+
+        }
+
+</style>
+
+</style>
+
+<div class="container">
+
+<div class="content">
+
+ <div class="new-content">
+
+  <div class="new-pw">
+
+   <div class="new-title">禁止访问！</div>
+
+    <div class="new-pws">
+
+<div class="search bar6">
+
+       <form method="post">
+
+           请输入密码：<input type="password" name="password" />
+
+           <input type="submit" value="登陆" />
+
+       </form>
+
+</center>
+
+    </div>
+
+   </div>
+
+  </div>
+
+ </div>
+
+</div>
+
+   ');
+
+}
+
+?>

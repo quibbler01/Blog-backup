@@ -1,0 +1,39 @@
+<?php $ax_banner = kv_get('ax_banner');?>
+<div id="demo" class="carousel slide mb-3" data-ride="carousel">
+ 
+  <!-- 指示符 -->
+  <ul class="carousel-indicators">
+    <li data-target="#demo" data-slide-to="0" class="active"></li>
+    <li data-target="#demo" data-slide-to="1"></li>
+    <li data-target="#demo" data-slide-to="2"></li>
+  </ul>
+ 
+  <!-- 轮播图片 -->
+  <div class="carousel-inner">
+  <?php if($ax_banner['banner_img1']){?>
+    <div class="carousel-item active">
+      <a href="<?php echo $ax_banner['banner_url1'] == '' ? 'javascrtpt:' : $ax_banner['banner_url1']?>" target="_blank"><img src="<?php echo $ax_banner['banner_img1']?>"></a>
+    </div>
+  <?php }?>
+  <?php if($ax_banner['banner_img2']){?>
+    <div class="carousel-item ">
+      <a href="<?php echo $ax_banner['banner_url2'] == '' ? 'javascrtpt:' : $ax_banner['banner_url2']?>" target="_blank"><img src="<?php echo $ax_banner['banner_img2']?>"></a>
+    </div>
+  <?php }?>
+  <?php if($ax_banner['banner_img2']){?>
+    <div class="carousel-item ">
+      <a href="<?php echo $ax_banner['banner_url3'] == '' ? 'javascrtpt:' : $ax_banner['banner_url3']?>" target="_blank"><img src="<?php echo $ax_banner['banner_img3']?>"></a>
+    </div>
+  <?php }?>
+ 
+  </div>
+ 
+  <!-- 左右切换按钮 -->
+  <a class="carousel-control-prev" href="#demo" data-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </a>
+  <a class="carousel-control-next" href="#demo" data-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </a>
+ 
+</div>

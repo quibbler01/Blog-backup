@@ -1,0 +1,23 @@
+<script>
+	// 适用于两种状态直接切换
+	$('a.xpost').on('click', function() {
+		var jthis = $(this);
+		var method = xn.strtolower(jthis.data('method'));
+		var href = jthis.data('href') || jthis.attr('href');
+		if(method == 'post') {
+			$.xpost(href, function(code, message) {
+				if(code == 0) {
+					window.location.reload();
+				} else {
+					$.alert(message);					
+				}
+			});
+		} else {
+			window.location = jthis.attr('href');
+		}
+
+		return false;
+	});
+	console.log('xpost loaded');
+</script>
+<?php echo kvcode_display('footer_js_after', 'html > body ( footer_js_after )'); ?>

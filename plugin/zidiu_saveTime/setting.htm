@@ -1,0 +1,52 @@
+<?php include _include(ADMIN_PATH.'view/htm/header.inc.htm');?>
+
+<div class="row">
+	<div class="col-lg-10 mx-auto">
+		<div class="card">
+			<div class="card-body">
+				<form action="<?php echo url("plugin-setting-zidiu_saveTime");?>" method="post" id="form">
+					<h4 class="card-title">【自丢网zidiu.com】下面填写：建站时间，格式：2019-3-22 18:22:58</h4>
+					<h6>温馨提示：如果在使用xiuno程序中有疑惑或者遇到问题以及插件模板网站修改维护都可以联系我Q：515138</h6>
+					<div  id="opentime"  class="form-group row">
+						<div class="col-sm-10">
+							建站时间为：<input name="zidiu_saveTime" size='30' type="text" value="<?php echo $setting['zidiu_saveTime'];?>">
+						</div>
+					</div>
+
+					
+					<div class="form-group row">
+						<div class="col-sm-10">
+							<button type="submit" class="btn btn-primary btn-block" id="submit" data-loading-text="<?php echo lang('submiting');?>..."><?php echo lang('confirm');?></button>
+							<a role="button" class="btn btn-secondary btn-block mt-3" href="javascript:history.back();"><?php echo lang('back');?></a>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+<?php include _include(ADMIN_PATH.'view/htm/footer.inc.htm');?>
+
+<script>
+var jform = $("#form");
+var jsubmit = $("#submit");
+var referer = '<?php echo http_referer();?>';
+jform.on('submit', function(){
+	jform.reset();
+	jsubmit.button('loading');
+	var postdata = jform.serialize();
+	$.xpost(jform.attr('action'), postdata, function(code, message) {
+		if(code == 0) {
+			$.alert(message);
+			jsubmit.text(message).delay(2000).button('reset').location(referer);
+			return;
+		} else {
+			$.alert(message);
+			jsubmit.button('reset');
+		}
+	});
+	return false;
+});
+	
+</script>

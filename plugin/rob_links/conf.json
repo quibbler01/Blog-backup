@@ -1,0 +1,10 @@
+{
+    "name": "页面",
+    "brief": "简介：导航栏增加页面。<br>插件由<a href='https://www.jbxiaozi.com' target='_blank'>https://www.jbxiaozi.com</a>制作",
+    "version": "1.0",
+    "bbs_version": "4.0.3",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": [],
+    "dependencies": []
+}

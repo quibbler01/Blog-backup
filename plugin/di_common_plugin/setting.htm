@@ -1,0 +1,67 @@
+<?php include _include(ADMIN_PATH.'view/htm/header.inc.htm');?>
+
+<div class="row">
+	<div class="col-lg-10 offset-lg-1">
+		<div class="card">
+			<div class="card-body">
+				<form action="<?php echo url('plugin-setting-di_common_plugin');?>" method="post" id="form">
+					<h4 class="card-title">常用插件配置</h4>
+					<div class="form-group row">
+						<label class="col-sm-2 form-control-label">插件英文名</label>
+						<div class="col-sm-10">
+							<?php echo $input['list']; ?>
+						</div>
+					</div>
+					<div class="form-group row">
+							<label class="col-sm-2 form-control-label"></label>
+							<div class="col-sm-10">
+								<button type="submit" class="btn btn-primary btn-block" id="submit" data-loading-text="<?php echo lang('submiting');?>..."><?php echo lang('confirm');?></button>
+							</div>
+					</div>
+				</form>
+				<p class="m-a-1 small">
+
+				
+				插件开发自：<a href="http://7we.net">柒微订阅号助手</a>
+				交流群：<a href="https://jq.qq.com/?_wv=1027&k=5pxMHML">558951704 </a>
+				<br>请在输入框中填入插件英文名，一行一个;以下为插件列表及其对应英文名<hr>
+
+				<?php
+				 $i=0;
+				 foreach($pluginlist as $dir=>$plugin) { 
+				    $i++;
+					$plugin['name'] = array_value($plugin, 'name');
+					echo "{$i}、".$plugin['name'].'——'.$dir."<br>";
+				}
+				?>
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
+
+<?php include _include(ADMIN_PATH.'view/htm/footer.inc.htm');?>
+
+<script>
+let jform = $("#form");
+let jsubmit = $("#submit");
+let referer = '<?php echo http_referer();?>';
+jform.on('submit', function(){
+	jform.reset();
+	jsubmit.button('loading');
+	let postdata = jform.serialize();
+	$.xpost(jform.attr('action'), postdata, function(code, message) {
+		if(code == 0) {
+			$.alert(message);
+			jsubmit.text(message).delay(2000).button('reset').location(referer);
+			return;
+		} else {
+			$.alert(message);
+			jsubmit.button('reset');
+		}
+	});
+	return false;
+});
+</script>

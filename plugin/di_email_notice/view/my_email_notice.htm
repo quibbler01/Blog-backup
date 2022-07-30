@@ -1,0 +1,18 @@
+<template include="./view/htm/my.template.htm">
+	<slot name="my_body">
+		<div class="col-lg-6 mx-auto">
+			<form action="<?php echo url('my-email_notice');?>" method="post" id="form">
+			主题有新回复邮件通知：<?php echo form_radio_yes_no('email_notice', $checked); ?>
+					<button type="submit" class="btn btn-primary btn-block" id="submit" data-loading-text="<?php echo lang('submiting');?>...">提交</button>
+				</div>
+			</form>
+		</div>
+	</slot>
+</template>
+
+<script src="<?php echo $conf['view_url'];?>js/md5.js"></script>
+
+<script>
+$('a[data-active="my"]').addClass('active');
+$('a[data-active="my-email_notice"]').addClass('active');
+</script>

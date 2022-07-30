@@ -1,0 +1,11 @@
+{
+    "name": "【自丢网】站点安全运行时间",
+    "brief": "<a href='http://www.zidiu.com' target='_blank'>【自丢网zidiu.com】</a>显示站点已安全运行了多长时间。<a href='http://wpa.qq.com/msgrd?v=3&uin=515138&site=qq&menu=yes' target='_blank'>QQ：515138</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

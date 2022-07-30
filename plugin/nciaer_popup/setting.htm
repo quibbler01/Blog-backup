@@ -1,0 +1,496 @@
+<?php include _include(ADMIN_PATH.'view/htm/header.inc.htm');?>
+<div class="row">
+    <div class = "col-12">
+        <div class="card">
+            <div class="card-body">
+                <form action="<?php echo url('plugin-setting-nciaer_popup');?>" method="post" id="form">
+                <div class="form-group row">
+                    <div class="col-sm-12"><h4>弹窗公告设置</h4></div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 form-control-label">公告标题：</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="text" name="title" value="<?php echo $title;?>" placeholder="请输入公告标题"/>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 form-control-label">公告内容：</label>
+                    <div class="col-sm-10">
+                        <textarea style="height: 150px;" class="form-control" name="content" placeholder="请输入公告内容"><?php echo $content;?></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 form-control-label">显示模式：</label>
+                    <div class="col-sm-10">
+                        <?php echo form_select('showmode', array('始终显示', '整个会话仅显示一次', '3天内不再显示', '7天内不再显示'), $showmode);?>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 form-control-label">弹窗动画：</label>
+                    <div class="col-sm-10">
+                        <?php echo form_select('anim', array('平滑放大', '从上掉落', '从最底部往上滑入', '从左滑入', '从左翻滚', '渐显', '抖动'), $anim);?>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 form-control-label">自动关闭时间：</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="text" name="closetime" value="<?php echo $closetime;?>" placeholder="0为不自动关闭，单位毫秒"/>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 form-control-label">按钮文字：</label>
+                    <div class="col-sm-10">
+                        <input class="form-control" type="text" name="btntext" value="<?php echo $btntext;?>" placeholder="请输入按钮文字"/>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                        <button type="submit" class="btn btn-primary btn-block" id="submit" data-loading-text="<?php echo lang('submiting');?>...">提交</button>
+                        <a role="button" class="btn btn-secondary btn-block mt-3" href="javascript:history.back();">返回</a>
+                    </div>
+                </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<?php include _include(ADMIN_PATH.'view/htm/footer.inc.htm');?>
+<script>
+    var jform = $("#form");
+    var jsubmit = $("#submit");
+    var referer = '<?php echo url("plugin-setting-nciaer_popup");?>';
+    jform.on('submit', function () {
+        jform.reset();
+        jsubmit.button('loading');
+        var postdata = jform.serialize();
+        $.xpost(jform.attr('action'), postdata, function (code, message) {
+            if (code == 0) {
+                $.alert(message);
+                jsubmit.text(message).delay(1000).button('reset').location(referer);
+            } else {
+                console.log(message);
+                $.alert('提交失败！');
+                jsubmit.button('reset');
+            }
+        });
+        return false;
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

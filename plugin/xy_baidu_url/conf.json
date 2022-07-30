@@ -1,0 +1,11 @@
+{
+    "name": "百度url自动推送",
+    "brief": "百度url自动推送，网站收录神器<br>说明url：http://bbs.xiuno.com/thread-21440.htm <br>小站：https://www.95its.com",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 0,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

@@ -1,0 +1,16 @@
+<?php
+$tianapi_apikey = kv_get('apikey');
+$get_tianapi=file_get_contents('http://api.tianapi.com/txapi/saylove/?key='.$tianapi_apikey);
+$saylove=json_decode($get_tianapi,true);
+$saylove_content = $saylove['code'] == 200?$saylove['newslist'][0]['content']:'数据读取失败，请检查该插件的apikey';
+?>
+<div class="card">
+    <div class="card-header">
+        土味情话
+    </div>
+    <div class="card-footer">
+        <?php echo $saylove_content;?>
+    </div>
+</div>
+
+

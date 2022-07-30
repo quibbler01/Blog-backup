@@ -1,0 +1,11 @@
+{
+    "name": "帖子内容版权",
+    "brief": "访客复制网页内容自动在复制的内容后面添加版权信息声明。由<a href=\"https://www.ccreed.com/user-1.htm\" style=\"color:red\" target=\"_blank\">代码信条-夜琉璃</a>制作，QQ：2813361953。",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 0,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

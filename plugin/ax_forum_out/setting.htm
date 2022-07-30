@@ -1,0 +1,72 @@
+<?php include _include(ADMIN_PATH.'view/htm/header.inc.htm');?>
+<!-- 
+
+					<p>XIUNO商业插件平台官方认证：<a href="http://www.432k.cn" target="_blank">点此进入</a></p>
+					<p>当前插件作者：迷途，QQ：277177818，原创独家开发</p>
+					<p>请勿使用第三方盗版以及倒卖者插件，谨防小人留后门，非JT建站平台（www.432k.cn）购买的插件无任何售后服务。</p>
+
+ -->
+ <?php $_checkbox = $ax_forum_out['fidarr'];?>
+<div class="row">
+	<div class="col-lg-10 mx-auto">
+
+		<div class="card">
+			<div class="card-body">
+
+				<form action="<?php echo url("plugin-setting-ax_forum_out");?>" method="post" id="form">
+
+					<div class="form-group row">
+						<label class="col-sm-2 form-control-label">选择板块</label>
+						<div class="col-sm-10">		
+							<?php foreach($forumlist as $_fid=>$_forum){?>
+								<label class="custom-input custom-checkbox mr-4"><input type="checkbox" name="fid[]" value="<?php echo $_forum['fid']?>" <?php if(in_array($_forum['fid'],$_checkbox)) {echo 'checked="checked"';}?> > <?php echo $_forum['name']?></label>
+							<?php }?>
+						</div>	
+					</div>
+
+					
+
+
+					<div class="form-group row">
+						<label class="col-sm-2 form-control-label"></label>
+						<div class="col-sm-10">
+							<button type="submit" class="btn btn-primary btn-block" id="submit" data-loading-text="<?php echo lang('submiting');?>..."><?php echo lang('confirm');?></button>
+							<a role="button" class="btn btn-secondary btn-block mt-3" href="javascript:history.back();">
+								<?php echo lang('back');?>
+							</a>
+						</div>
+					</div>
+				</form>
+				<div class="card-body">
+					<p>XIUNO商业插件平台官方认证：<a href="http://www.432k.cn" target="_blank">点此进入</a></p>
+					<p>当前插件作者：迷途，QQ：277177818，原创独家开发</p>
+					<p>请勿使用第三方盗版以及倒卖者插件，谨防小人留后门，非JT建站平台（www.432k.cn）购买的插件无任何售后服务。</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<?php include _include(ADMIN_PATH.'view/htm/footer.inc.htm');?>
+
+<script>
+var jform = $("#form");
+var jsubmit = $("#submit");
+var referer = '<?php echo url("plugin-setting-ax_forum_out");?>';
+jform.on('submit', function(){
+	jform.reset();
+	jsubmit.button('loading');
+	var postdata = jform.serialize();
+	$.xpost(jform.attr('action'), postdata, function(code, message) {
+		if(code == 0) {
+			$.alert(message);
+			jsubmit.text(message).delay(1000).button('reset').location(referer);
+		} else {
+			$.alert('提交失败');
+			jsubmit.button('reset');
+		}
+	});
+	return false;
+});
+</script>
+
+

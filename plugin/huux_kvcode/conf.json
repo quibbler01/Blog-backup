@@ -1,0 +1,13 @@
+{
+    "name": "大白自定义 PRO",
+    "brief": "前台编辑代码，直接显示到页面，自定义各种代码，HTML、CSS、JS等，很强的创造力。<br />(FOR 4.0 正式版)",
+    "version": "1.1",
+    "bbs_version": "4.0.3",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": {
+        "header_link_after.htm": -99
+    },
+    "overwrites_rank": [],
+    "dependencies": []
+}

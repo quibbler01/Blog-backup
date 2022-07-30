@@ -1,0 +1,10 @@
+{
+    "name": "直达",
+    "brief": "方便的小功能，直达顶部或底部，图标更新为清新风格",
+    "version": "1.3",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "dependencies": []
+}

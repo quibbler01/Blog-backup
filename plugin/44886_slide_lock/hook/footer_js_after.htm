@@ -1,0 +1,17 @@
+<script>
+    window.onscroll = function () {
+      var topScroll = document.documentElement.scrollTop;//滚动的距离,距离顶部的距离
+      var bignav = document.getElementsByClassName("aside")[0];//获取到导航栏id
+      var left = document.getElementsByClassName("aside")[0].getBoundingClientRect().left;
+      var width=document.getElementsByClassName("aside")[0].getBoundingClientRect().width;
+      if (topScroll > 210 && Math.abs(topScroll-document.documentElement.scrollHeight)>600) { //当滚动距离大于250px时执行下面的东西
+        bignav.style.position = 'fixed';
+        bignav.style.top = '10px';
+        bignav.style.left = '' + left + 'px';
+        bignav.style.width = '' + width + 'px';
+        bignav.style.zIndex = '9999';
+      } else {//当滚动距离小于250的时候执行下面的内容，也就是让导航栏恢复原状
+        bignav.style.position = 'static';
+      }
+    }
+  </script>

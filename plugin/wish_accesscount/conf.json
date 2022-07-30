@@ -1,0 +1,11 @@
+{
+    "name": "访客统计（您是第N位访客）",
+    "brief": "每个访客每天只记录一次，需要改进或定制的可以联系我。使用交流：http://bbs.91wc.net/thread-3.htm<br /><a href='http://www.91wc.net' target='_blank'>唯诚网络出品</a>&nbsp;&nbsp;<a href='http://wpa.qq.com/msgrd?v=3&uin=1198845956&site=qq&menu=yes' target='_blank'>QQ: 1198845956</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

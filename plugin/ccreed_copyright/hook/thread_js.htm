@@ -1,0 +1,23 @@
+<script>
+// 帖子内容Copyright自动添加
+function addLink() {
+    var selection = window.getSelection();
+  	var separationLine = "<br/>-------------------------------------";
+  	var thread_author = "<br/>作者: " + "<?php echo $thread['username'];?>";
+  	var thread_source ="<br/>来源: "+"<?php echo $conf['sitename']; ?>";
+    var thread_link = "<br/>原文链接: " + document.location.href;
+  	var thread_statement = "<br/>版权声明: 若无额外声明，本帖为作者原创帖，转载请附上帖子链接！"
+    var thread_copyright = separationLine + thread_author + thread_source + thread_link + thread_statement
+    var copytext = selection + thread_copyright;
+    var newdiv = document.createElement('div');
+    newdiv.style.position = 'absolute';
+    newdiv.style.left = '-99999px';
+    document.body.appendChild(newdiv);
+    newdiv.innerHTML = copytext;
+    selection.selectAllChildren(newdiv);
+    window.setTimeout(function () {
+        document.body.removeChild(newdiv);
+    }, 100);
+}
+document.oncopy = addLink;
+</script>

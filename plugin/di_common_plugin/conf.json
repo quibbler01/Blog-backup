@@ -1,0 +1,11 @@
+{
+    "name": "常用插件",
+    "brief": "后台首页设置并显示常用插件，方便编辑配置插件；<br>插件开发自<a href=\"http://7we.net\">柒微订阅号助手</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

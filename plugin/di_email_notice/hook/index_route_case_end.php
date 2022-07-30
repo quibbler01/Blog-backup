@@ -1,0 +1,1 @@
+case 'post_email_notice': include _include(APP_PATH.'plugin/di_email_notice/post_email_notice.php'); break;

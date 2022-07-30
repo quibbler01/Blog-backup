@@ -1,0 +1,11 @@
+{
+    "name": "弹窗公告",
+    "brief": "<b>简介：</b>管理员可设置公告信息，会员浏览网站自动弹出，可设置弹出模式及弹出动画，内容支持HTML。美观醒目<br /><b>作者：</b>硬汉工作室<br /><b>定制：</b>插件定制需求请联系客服QQ：1069971363<br />更多插件请访问：<b><a target = '_blank' href = 'http://www.nciaer.com'>www.nciaer.com</a></b>",
+    "version": "1.1",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

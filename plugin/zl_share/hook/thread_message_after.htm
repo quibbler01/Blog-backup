@@ -1,0 +1,25 @@
+<?php
+    $config = setting_get('zl_share');
+    if($config) {
+        $config = json_decode($config, true);
+        $shares = array(
+            "qzone" => "on",
+            "qq" => "on",
+            "tencent" => "on",
+            "weibo" => "on",
+            "wechat" => "on",
+            "douban" => "on",
+            "diandian" => "on",
+            "linkedin" => "on",
+            "facebook" => "on",
+            "twitter" => "on",
+            "google" => "on"
+        );
+        $disabled = array_keys(array_diff_key($shares, $config));
+        $disabled = implode($disabled, ',');
+    } else {
+        $disabled = "";
+    }
+?>
+
+<div class="share-component" data-disabled="<?php echo $disabled; ?>"></div>

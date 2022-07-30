@@ -1,0 +1,10 @@
+{
+    "name": "一键分享",
+    "brief": "插件介绍地址: <a href='https://zhaolindev.com/?thread-1.htm' target='_blank'>https://zhaolindev.com/?thread-1.htm</a> <br>更多优质主题、插件请点击：<a href='https://zhaolindev.com'  target='_blank'>召灵社区</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "dependencies": []
+}

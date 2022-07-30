@@ -1,0 +1,11 @@
+{
+    "name": "博客转为word",
+    "brief": "把博客内容以word的格式保存到本地,适用于官方默认主题，更新了标题的获取逻辑，适应更多主题",
+    "version": "1.1",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

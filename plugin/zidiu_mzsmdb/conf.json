@@ -1,0 +1,14 @@
+{
+    "name": "【自丢网】免责声明底部展示",
+    "brief": "<a href='http://www.zidiu.com' target='_blank'>【自丢网zidiu.com】</a>填入免责声明内容，底部显示，如有问题请联系作者<a href='http://wpa.qq.com/msgrd?v=3&uin=515138&site=qq&menu=yes' target='_blank'>QQ：515138</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": {
+        "footer_nav_before.htm": -100,
+        "thread_user_after.htm": -100
+    },
+    "overwrites_rank": [],
+    "dependencies": []
+}

@@ -1,0 +1,13 @@
+<!--插件模板开发修改/网站维护以及建站过程中如有任何问题请联系【技术维护】QQ：515138-->
+<?php 
+//本站已运行多长时间
+date_default_timezone_set("PRC");
+$now = time();
+$jianZhanTime = setting_get('zidiu_saveTime');
+$JZT = strtotime("$jianZhanTime");
+if(ceil($now - $JZT)/86400 == NULL){
+	echo '建站天数为0天';
+}else{
+   echo '本站已安全运行了<font color="red">'.ceil(($now - $JZT)/86400).'</font>天。';
+}
+?>

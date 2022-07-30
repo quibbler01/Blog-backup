@@ -1,0 +1,11 @@
+{
+    "name": "php密码访问",
+    "brief": "限制密码访问，只能通过密码访问站点，懂的人自然懂。 <br/>更改设置后，需手动清空根目录tmp文件夹下文件，才能正常。<br/>- 插件作者：http://bbs.bydeku.cn/",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

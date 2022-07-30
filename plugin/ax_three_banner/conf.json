@@ -1,0 +1,12 @@
+{
+    "name": "首页固定三张banner图",
+    "brief": "作者：迷途 <br>更多商业插件请到：<a href='http://www.432k.cn' class='text-danger'>JT建站</a><br>有问必答社区：<a href='http://bbs.432k.cn'>四叶草问答社区</a>",
+    "version": "1.0",
+    "bbs_version": "4.0",
+    "installed": 0,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": [],
+    "username": ""
+}

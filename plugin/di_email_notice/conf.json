@@ -1,0 +1,11 @@
+{
+    "name": "回帖邮件通知",
+    "brief": "主题有新回帖邮件通知楼主或用户帖子被引用通知用户<br>2.0支持自定义回复内容<br>2.5版本支持用户自定义开关",
+    "version": "2.5",
+    "bbs_version": "4.0",
+    "installed": 1,
+    "enable": 0,
+    "hooks_rank": [],
+    "overwrites_rank": [],
+    "dependencies": []
+}

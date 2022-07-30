@@ -1,0 +1,10 @@
+{
+    "name": "一次展示所有可下载插件",
+    "brief": "一次展示xiuno论坛后台的所有可下载插件，方便查找。作者微信：iamnotahacker",
+    "version": "1.0",
+    "bbs_version": "4.0.4",
+    "installed": 1,
+    "enable": 1,
+    "hooks_rank": [],
+    "dependencies": []
+}
