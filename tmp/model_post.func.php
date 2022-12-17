@@ -35,6 +35,10 @@ function post__delete($pid) {
 	
 	$r = db_delete('post', array('pid'=>$pid));
 	
+
+haya_post_like_delete_by_pid($pid);	
+
+
 	return $r;
 }
 
@@ -84,6 +88,12 @@ function post_create($arr, $fid, $gid) {
 	user_update_group($uid);
 	
 	
+	if(search_type() == 'fulltext') {
+		$s = strip_tags($message);
+		$words = search_cn_encode($s);
+		db_create('post_search', array('pid'=>$pid, 'message'=>$words));
+	}
+
 	
 	return $pid;
 }
@@ -110,6 +120,24 @@ function post_update($pid, $arr, $tid = 0) {
 	attach_assoc_post($pid);
 	
 	
+
+$message = $arr['message'];
+if($isfirst) {
+	if(search_type() == 'fulltext') {
+		$thread = thread__read($tid);
+		$s = strip_tags($thread['subject'].' '.$message);
+		$words = search_cn_encode($s);
+		db_replace('thread_search', array('tid'=>$tid, 'message'=>$words));
+	}
+} else {
+	if(search_type() == 'fulltext') {
+		$s = strip_tags($message);
+		$words = search_cn_encode($s);
+		db_replace('post_search', array('pid'=>$pid, 'message'=>$words));
+	}
+}
+
+
 	return $r;
 }
 
@@ -143,6 +171,8 @@ function post_delete($pid) {
 	$fid = $thread['fid'];
 	
 	
+	db_delete('post_search', array('pid'=>$pid));
+
 	
 	if(!$post['isfirst']) {
 		thread__update($tid, array('posts-'=>1));
@@ -201,6 +231,91 @@ function post_find_by_tid($tid, $page = 1, $pagesize = 50) {
 	global $conf;
 	
 	
+
+$haya_post_info_config = GLOBALS('haya_post_info_config');
+
+if ((isset($haya_post_info_config['show_see_him']) 
+	&& $haya_post_info_config['show_see_him'] == 1)
+	|| (isset($haya_post_info_config['show_see_first_floor']) 
+	&& $haya_post_info_config['show_see_first_floor'] == 1)
+	|| (isset($haya_post_info_config['show_post_sort']) 
+	&& $haya_post_info_config['show_post_sort'] == 1)
+) {
+
+	$thread = GLOBALS('thread');
+
+	if (!empty($thread)) {
+		
+		if ((isset($haya_post_info_config['show_see_him']) 
+			&& $haya_post_info_config['show_see_him'] == 1)
+			|| (isset($haya_post_info_config['show_see_first_floor']) 
+			&& $haya_post_info_config['show_see_first_floor'] == 1)
+		) {
+			$haya_post_info_see_user = _REQUEST('user');
+		} else {
+			$haya_post_info_see_user = '';
+		}
+		
+		if ((isset($haya_post_info_config['show_post_sort']) 
+			&& $haya_post_info_config['show_post_sort'] == 1)
+		) {
+			$haya_post_info_post_default_sort = isset($haya_post_info_config['post_default_sort']) ? trim($haya_post_info_config['post_default_sort']) : '';
+			$haya_post_info_orderby = _REQUEST('sort', $haya_post_info_post_default_sort);
+		} else {
+			$haya_post_info_orderby = 'asc';
+		}
+
+		if (strtolower($haya_post_info_orderby) == 'desc') {
+			
+			$haya_post_info_orderby = array('pid' => -1);
+			
+			$haya_post_info_cond = array('tid' => $tid);
+
+			if (!empty($haya_post_info_see_user)) {
+				$haya_post_info_cond['uid'] = intval($haya_post_info_see_user);
+			}
+			
+			$postlist = post__find($haya_post_info_cond, $haya_post_info_orderby, $page, $pagesize);
+			
+			if ($page == 1) {
+				$first_thread = post__read($thread['firstpid']);
+				$postlist += array($thread['firstpid'] => $first_thread);
+			}
+			
+			if (!empty($postlist)) {
+				$floor = $thread['posts'] - ($page - 1) * $pagesize + 1;
+				foreach ($postlist as & $post) {
+					$post['floor'] = $floor--;
+					post_format($post);
+				}
+			}
+			
+			return $postlist;	
+
+		} elseif (!empty($haya_post_info_see_user)) {
+			$haya_post_info_cond = array('tid' => $tid, 'uid' => intval($haya_post_info_see_user));
+			
+			$postlist = post__find($haya_post_info_cond, array('pid' => 1), $page, $pagesize);
+			if ($page == 1) {
+				$first_thread = post__read($thread['firstpid']);
+				$postlist += array($thread['firstpid'] => $first_thread);
+			}
+			
+			if (!empty($postlist)) {
+				$floor = ($page - 1) * $pagesize + 1;
+				foreach ($postlist as & $post) {
+					$post['floor'] = $floor++;
+					post_format($post);
+				}
+			}
+			
+			return $postlist;
+		}
+	}
+
+}
+	
+
 	
 	$postlist = post__find(array('tid'=>$tid), array('pid'=>1), $page, $pagesize);
 	
@@ -287,6 +402,69 @@ function post_file_list_html($filelist, $include_delete = FALSE) {
 	if(empty($filelist)) return '';
 	
 	
+
+$haya_post_attach_lite_rand = md5(time().xn_rand(10));
+
+?>
+<style>
+.message > .fieldset {
+	margin-top: 20px;
+}
+.attachlist {
+	padding: 0;
+}
+.attachlist li {
+	list-style-type: none;
+	font-size: 15px;
+	margin-bottom: 8px;
+}
+.attachlist li:last-child {
+	border-bottom: 0;
+	margin-bottom: 0;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> {
+	display: inline-block;
+	position: relative;
+	max-width: 50%;
+	cursor: pointer;
+	transition: all 0.5s linear;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?>.open {
+	max-width: 100%;
+	transition: all 0.5s linear;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> .haya-post-attach-lite-img {
+	width: 100%;
+    margin-bottom: 0 !important;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> .haya-post-attach-lite-search {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	text-decoration: none;
+	border-radius: 4px;
+	padding: 0 5px;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	background: rgba(255, 255, 255, 0.3);
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> .haya-post-attach-lite-search:hover {
+	border: 1px solid rgba(255, 255, 255, 0.5);
+	background: rgba(255, 255, 255, 0.5);
+}
+</style>
+<script>
+function haya_post_attach_lite_open_<?php echo $haya_post_attach_lite_rand; ?>(id) {
+	var thiz = $(id).parent();
+	if (thiz.hasClass("open")) {
+		thiz.removeClass("open");
+	} else {
+		thiz.addClass("open");
+	}
+}
+</script>
+<?php
+
+
 	
 	$s = '<fieldset class="fieldset">'."\r\n";
 	$s .= '<legend>上传的附件：</legend>'."\r\n";
@@ -298,8 +476,27 @@ function post_file_list_html($filelist, $include_delete = FALSE) {
 		$s .= '			'.$attach['orgfilename']."\r\n";
 		$s .= '		</a>'."\r\n";
 		
+
+$s .= "<span class='text-grey ml-1'>(".lang("haya_post_attach_lite_filesize")."：".humansize($attach['filesize'])."，".lang("haya_post_attach_lite_downloads")."：".intval($attach['downloads']).")</span>";
+
+
 		$include_delete AND $s .= '		<a href="javascript:void(0)" class="delete ml-3"><i class="icon-remove"></i> '.lang('delete').'</a>'."\r\n";
 		
+
+if (strtolower($attach['filetype']) == 'image') {
+	$s .= '<div class="row mt-1" data-aid="'.$attach['aid'].'">';
+	$s .= '		<div class="col-md-12">';
+	$s .= '			<span class="haya-post-attach-lite-info haya-post-attach-lite-info-'.$haya_post_attach_lite_rand.'">';
+	$s .= '				<img class="haya-post-attach-lite-img" onclick="javascript:haya_post_attach_lite_open_'.$haya_post_attach_lite_rand.'(this);" src="'.$attach['url'].'" alt="'.$attach['orgfilename'].'" title="'.$attach['orgfilename'].'" />';
+	$s .= '				<a class="haya-post-attach-lite-search" href="'.$attach['url'].'" target="_blank" title="'.lang("haya_post_attach_lite_open").'">';
+	$s .= '					<i class="icon-search"></i>';
+	$s .= '				</a>';
+	$s .= '			</span>';
+	$s .= '		</div>';
+	$s .= '</div>';
+} 
+
+
 		$s .= '</li>'."\r\n";
 	};
 	$s .= '</ul>'."\r\n";

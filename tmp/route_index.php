@@ -17,47 +17,38 @@ $active = 'default';
 // 从默认的地方读取主题列表
 $thread_list_from_default = 1;
 
-//<?
-//过滤$forumlist_show
-$thread_list_from_default = 0;
 
-if($thread_list_from_default == 0){
-    $wish_forumlist_show = $forumlist_show;
-    $wish_indexhideforum = setting_get('wish_indexhideforum');
-
-    if(!empty($wish_indexhideforum['hide_forums'])){
-        $wish_indexhideforum['hide_forums'] = str_replace('，', ',', $wish_indexhideforum['hide_forums']);
-        $wish_indexhideforum['hide_forums'] = explode(',', $wish_indexhideforum['hide_forums']);
-        $wish_indexhideforum['hide_forums'] = array_map('trim', $wish_indexhideforum['hide_forums']);
-        $wish_indexhideforum['hide_forums'] = array_filter($wish_indexhideforum['hide_forums']);
-        if(!empty($wish_indexhideforum['hide_forums'])){
-            //这种方法可以避免$key和fid不一致的意外
-            foreach ($wish_forumlist_show as $key => $forum_item){
-                if(in_array($forum_item['fid'], $wish_indexhideforum['hide_forums'])){
-                    unset($wish_forumlist_show[$key]);
-                }
-            }
-            //也可以用这种方法，性能高了一点点
-            /*foreach ($wish_indexhideforum['hide_forums'] as $hide_fid){
-                unset($wish_forumlist_show[$hide_fid]);
-            }*/
-        }
-    }
-
-    //查询帖子数据
-    $fids = arrlist_values($wish_forumlist_show, 'fid');
-    $threads = arrlist_sum($wish_forumlist_show, 'threads');
-    $pagination = pagination(url("$route-{page}"), $threads, $page, $pagesize);
-
-    
-    $threadlist = thread_find_by_fids($fids, $page, $pagesize, $order, $threads);
-
-    //判断是否在导航显示
-    if(!empty($wish_indexhideforum['show_in_nav']) && $wish_indexhideforum['show_in_nav'] == 'no'){
-        $forumlist_show = $wish_forumlist_show;
+$ax_forum_out = kv_get('ax_forum_out');
+$fids_filter = $ax_forum_out['fidarr'];
+foreach($fids_filter as $k) {
+    if(isset($forumlist_show[$k])){
+        unset($forumlist_show[$k]);
     }
 }
 
+
+
+if (isset($haya_post_info_config['show_setting_forum']) 
+	&& $haya_post_info_config['show_setting_forum'] == 1
+) {
+	$thread_list_from_default = 0;
+
+	$haya_post_info_show_fids = explode(',', $haya_post_info_config['index_show_fids']);
+	$haya_post_info_threads = haya_post_info_thread_count(array('fid' => $haya_post_info_show_fids));
+	$threadlist = haya_post_info_thread_find_by_fids($haya_post_info_show_fids, $haya_post_info_threads, $page, $pagesize, $order);
+	$pagination = pagination(url("index-{page}"), $haya_post_info_threads, $page, $pagesize);
+}
+
+$digest = param(2, 0);
+if($digest == 1) {
+	$thread_list_from_default = 0;
+	$active = 'digest';
+	$digests = thread_digest_count($fid);
+	
+	$pagination = pagination(url("$route-{page}-1"), $digests, $page, $pagesize);
+	
+	$threadlist = thread_digest_find_by_fid($fid, $page, $pagesize);
+}
 if($thread_list_from_default) {
 	$fids = arrlist_values($forumlist_show, 'fid');
 	$threads = arrlist_sum($forumlist_show, 'threads');
@@ -83,6 +74,13 @@ $header['description'] = $conf['sitebrief']; 			// site description
 $_SESSION['fid'] = 0;
 
 
+
+$header['keywords'] = empty($conf['site_keywords']) ? '': $conf['site_keywords'];
+
+if($ajax) {
+	foreach($threadlist as &$thread) $thread = thread_safe_info($thread);
+	message(0, $threadlist);
+}
 
 include _include(APP_PATH.'view/htm/index.htm');
 

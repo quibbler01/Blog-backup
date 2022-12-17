@@ -28,6 +28,17 @@ $include_model_files = array (
 	APP_PATH.'model/session.func.php',
 	
 	
+
+APP_PATH.'plugin/haya_post_info/model/haya_post_info.func.php',
+
+
+
+
+APP_PATH.'plugin/haya_post_like/model/haya_post_like.func.php',
+
+
+
+APP_PATH.'plugin/xn_search/model/search.func.php',
 APP_PATH.'plugin/xn_tag/model/tag_cate.func.php',
 APP_PATH.'plugin/xn_tag/model/tag.func.php',
 APP_PATH.'plugin/xn_tag/model/tag_thread.func.php',
@@ -65,6 +76,9 @@ if(DEBUG) {
 }
 
 
+	include _include(APP_PATH.'plugin/xn_digest/model/thread_digest.func.php');
+
+include _include(APP_PATH.'plugin/xn_ipaccess/ipaccess.func.php');
 
 
 

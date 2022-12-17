@@ -121,7 +121,7 @@ if(empty($action) || $action == 'list') {
 		$grouparr = arrlist_key_values($grouplist, 'gid', 'name');
 		$input['_gid'] = form_select('_gid', $grouparr, $_user['gid']);
 
-		
+		$input['signature'] = form_textarea('my_signature', $_user['signature'], '100%', 150);
 		
 		include _include(ADMIN_PATH."view/htm/user_update.htm");
 
@@ -132,7 +132,11 @@ if(empty($action) || $action == 'list') {
 		$password = param('password');
 		$_gid = param('_gid');
 		
-		
+		$signature = param('my_signature', '', $htmlspecialchars = FALSE);
+$signature = strip_tags($signature,"<b>,<br>,<a>,<img>,<span>");
+include _include(APP_PATH.'plugin/art_signature/model/closetags.php');
+$signature = CloseTags($signature);
+$signature = htmlspecialchars($signature);
 		
 		$old = user_read($_uid);
 		empty($old) AND message('username', lang('uid_not_exists'));
@@ -158,7 +162,7 @@ if(empty($action) || $action == 'list') {
 			$arr['salt'] = $salt;
 		}
 		
-		
+		$arr['signature']=$signature;
 		
 		// 仅仅更新发生变化的部分 / only update changed field
 		$update = array_diff_value($arr, $old);

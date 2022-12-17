@@ -4,14 +4,46 @@
 
 <div class="row">
 	<div class="col-lg-9 main">
-		
+		<?php
+$slidelist = db_find('slide', array(), array('rank'=>-1), 1, 1000, 'slideid');
+?>
+	<div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+		<div class="carousel-inner">
+			<ol class="carousel-indicators">
+				<?php if($slidelist) { foreach ($slidelist as $key => $link) { ?>
+				<li data-target="#carouselExampleControls" data-slide-to="<?php echo $key;?>"></li>
+				<?php }} ?>
+			</ol>
+			<?php if($slidelist) { foreach ($slidelist as $key => $link) { ?>
+			<div class="carousel-item" data-active="<?php echo $key;?>">
+				<a href="<?php echo $link['url'];?>" title="<?php echo $link['name'];?>">
+					<img class="d-block w-100 rounded" src="<?php echo $link['slidepic'];?>" alt="<?php echo $link['name'];?>" height="<?php echo $link['picheight'];?>">
+					<div class="carousel-caption d-none d-md-block">
+						<h5 class="text-white"><?php echo $link['name'];?></h5>
+					</div>
+				</a>
+			</div>
+			<?php }} ?>
+		</div>
+		<a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+			<span class="carousel-control-prev-icon" aria-hidden="true"></span>
+			<span class="sr-only">Previous</span>
+		</a>
+		<a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+			<span class="carousel-control-next-icon" aria-hidden="true"></span>
+			<span class="sr-only">Next</span>
+		</a>
+	</div>
+	<div class="mb-3"></div>
 		<div class="card card-threadlist">
 			<div class="card-header">
 				<ul class="nav nav-tabs card-header-tabs">
 					<li class="nav-item">
 						<a class="nav-link <?php echo $active == 'default' ? 'active' : '';?>" href="./<?php echo url("$route");?>"><?php echo lang('new_thread');?></a>
 					</li>
-					
+										<li class="nav-item">
+						<a class="nav-link  <?php echo $active == 'digest' ? 'active' : '';?>" href="<?php echo url("$route-0-1");?>"><?php echo lang('digest_thread');?></a>
+					</li>
 				</ul>
 			</div>
 			<div class="card-body">
@@ -64,6 +96,49 @@
 			</div>
 			
 		</div>
+		<div class="form-group">
+	<form action="<?php echo url('search');?>" id="search_form">
+		<div class="input-group mb-3">
+			<input type="text" class="form-control" placeholder="<?php echo lang('keyword');?>" name="keyword">
+			<div class="input-group-append">
+				<button class="btn btn-primary" type="submit"><?php echo lang('search');?></button>
+			</div>
+		</div>
+	</form>
+</div><?php
+$tianapi_apikey = kv_get('apikey');
+$get_tianapi=file_get_contents('http://api.tianapi.com/txapi/mingyan/?key='.$tianapi_apikey);
+$mingyan=json_decode($get_tianapi,true);
+$mingyan_content = $mingyan['code'] == 200?$mingyan['newslist'][0]['content'].' - '.$mingyan['newslist'][0]['author']:'数据读取失败，请检查该插件的apikey';
+?>
+<div class="card">
+    <div class="card-header">
+        名人名言
+    </div>
+    <div class="card-footer">
+        <?php echo $mingyan_content;?>
+    </div>
+</div>
+
+
+
+		<?php
+			$linklist = db_find('friendlink', array(), array('rank'=>-1), 1, 1000, 'linkid');
+		?>
+		<div class="card friendlink">
+			<div class="card-header">友情链接</div>
+			<div class="card-body small">
+				<ul>
+					<?php if($linklist) { foreach ($linklist as $link) { ?>
+					<li class="mb-1 small line-height-2">
+						<a href="<?php echo $link['url'];?>" target="_blank">
+							<?php echo $link['name'];?>
+						</a>
+					</li>
+					<?php }} ?>
+				</ul>
+			</div>
+		</div>
 		
 	</div>
 </div>
@@ -76,3 +151,16 @@
 $('li[data-active="fid-0"]').addClass('active');
 </script>
 
+<script type="text/javascript">
+	<!-- $(".carousel-item div:first-child").addClass("active"); -->
+	$('div[data-active="<?php echo $key;?>"]').addClass('active');
+	$('li[data-slide-to="<?php echo $key;?>"]').addClass('active');
+</script><script>
+jsearch_form = $('#search_form');
+jsearch_form.on('submit', function() {
+	var keyword = jsearch_form.find('input[name="keyword"]').val();
+	var url = xn.url('search-'+xn.urlencode(keyword));
+	window.location = url;
+	return false;
+});
+</script>

@@ -17,7 +17,8 @@ if(empty($action) || $action == 'create') {
 	$name = param('name');
 	$data = param_base64('data');
 	
-	
+		!ipaccess_check($longip, 'attachs') AND message(-1, '您的 IP 今日附件数达到上限。');
+	!ipaccess_check($longip, 'attachsizes') AND message(-1, '您的 IP 今日附件总大小达到上限。');
 	
 	// 允许的文件后缀名
 	//$types = include _include(APP_PATH.'conf/attach.conf.php');
@@ -42,6 +43,11 @@ if(empty($action) || $action == 'create') {
 	$filetype = attach_type($name, $filetypes);
 	
 	
+
+    $attach_maxsize = empty($conf['attach_maxsize']) ? 20971520 : $conf['attach_maxsize'];
+	$size > $attach_maxsize AND message(-1, lang('filesize_too_large', array('maxsize'=> round($attach_maxsize / 1048576 * 100) / 100 .'Mb', 'size'=>round($size / 1048576 * 100) / 100 .'Mb')));
+
+
 	
 	file_put_contents($tmpfile, $data) OR message(-1, lang('write_to_file_failed'));
 	
@@ -71,7 +77,8 @@ if(empty($action) || $action == 'create') {
 	
 	unset($attach['path']);
 	
-	
+			ipaccess_inc($longip, 'attachs');
+		ipaccess_inc($longip, 'attachsizes', $filesize);
 	
 	message(0, $attach);
 

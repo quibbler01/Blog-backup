@@ -49,6 +49,16 @@ check_runlevel();
 $route = param(0, 'index');
 
 
+$get_signature = kv_get('user_signature');
+
+
+$haya_post_info_config = setting_get('haya_post_info');
+
+
+
+$haya_post_like_config = setting_get('haya_post_like');
+
+
 
 if(!defined('SKIP_ROUTE')) {
 	
@@ -66,6 +76,7 @@ if(!defined('SKIP_ROUTE')) {
 		case 'mod': 	include _include(APP_PATH.'route/mod.php'); 	break;
 		case 'browser': include _include(APP_PATH.'route/browser.php'); break;
 		
+		case 'search': include _include(APP_PATH.'plugin/xn_search/route/search.php'); break;
 		default: 
 			
 			include _include(APP_PATH.'route/index.php'); 	break;

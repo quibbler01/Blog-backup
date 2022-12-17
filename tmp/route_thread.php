@@ -9,7 +9,8 @@ $action = param(1);
 // 发表主题帖 | create new thread
 if($action == 'create') {
 	
-	
+		!ipaccess_check($longip, 'threads') AND message(-1, '您的 IP 今日主题数达到上限。');
+	!ipaccess_check_seriate_threads() AND message(-1, '您的 IP 今日连续主题数已经达到上限。');
 		
 	user_login_check();
 
@@ -37,6 +38,20 @@ if($action == 'create') {
 	} else {
 		
 		
+
+// 发帖间隔
+if($gid == 101){
+	mt_rand(10000,200000);
+	usleep($ms);
+	$now = time();
+	$new = db_find_one('thread',array('uid'=>$uid),array('create_date'=>-1));
+	$j = $now - $new['create_date'];
+	$j < 60 AND message(-1,"发帖间隔不得小于1分钟");
+}
+
+
+
+
 		
 		$fid = param('fid', 0);
 		$forum = forum_read($fid);
@@ -67,6 +82,8 @@ if($action == 'create') {
 		);
 		
 		
+		qt_check_sensitive_word($thread['subject'], 'post_sensitive_words', $qt_error) AND message('subject', lang('thread_contain_sensitive_word') . $qt_error);
+		qt_check_sensitive_word($thread['message'], 'post_sensitive_words', $qt_error) AND message('message', lang('post_contain_sensitive_word') . $qt_error);
 		// todo:
 		
 		$tagids = param('tagid', array(0));
@@ -92,7 +109,7 @@ if($action == 'create') {
 		$pid === FALSE AND message(-1, lang('create_post_failed'));
 		$tid === FALSE AND message(-1, lang('create_thread_failed'));
 		
-		
+				ipaccess_inc($longip, 'threads');
 		// todo:
 		/*
 		$tag_cate_id_arr = param('tag_cate_id', array(0));
@@ -192,6 +209,95 @@ if($action == 'create') {
 	
 	
 	
+
+$haya_post_info_param = array();
+
+if (isset($haya_post_info_config['show_post_sort']) 
+	&& $haya_post_info_config['show_post_sort'] == 1
+) {
+	$haya_post_info_post_default_sort = isset($haya_post_info_config['post_default_sort']) ? trim($haya_post_info_config['post_default_sort']) : '';
+	$haya_post_info_orderby = param('sort', $haya_post_info_post_default_sort);
+	if (!empty($haya_post_info_orderby)) {
+		$haya_post_info_param = array_merge($haya_post_info_param, array('sort' => trim($haya_post_info_orderby)));
+	}
+}
+
+if ((isset($haya_post_info_config['show_see_him']) 
+	&& $haya_post_info_config['show_see_him'] == 1)
+	|| (isset($haya_post_info_config['show_see_first_floor']) 
+	&& $haya_post_info_config['show_see_first_floor'] == 1)
+) {
+	$haya_post_info_see_user = param('user', '');
+	if (!empty($haya_post_info_see_user)) {
+		$haya_post_info_see_user_id = intval($haya_post_info_see_user);
+
+		$thread['posts'] = post_count(array(
+			'tid' => $thread['tid'], 
+			'isfirst' => 0,
+			'uid' => $haya_post_info_see_user_id, 
+		));
+		
+		$haya_post_info_param = array_merge($haya_post_info_param, array('user' => $haya_post_info_see_user_id));
+	}
+}
+
+if (!empty($haya_post_info_param)) {
+	$pagination = pagination(url("thread-$tid-{page}$keywordurl", $haya_post_info_param), $thread['posts'] + 1, $page, $pagesize);
+}
+
+
+
+if (isset($haya_post_like_config['open_post'])
+	&& $haya_post_like_config['open_post'] == 1
+) {
+	$hot_like_post_size = intval($haya_post_like_config['hot_like_post_size']) + 1;
+	$hot_like_post_low_count = intval($haya_post_like_config['hot_like_post_low_count']);
+	
+	$haya_post_like_post_ids = array();
+	if (!empty($postlist)) {
+		foreach ($postlist as $haya_post_like_post) {
+			$haya_post_like_post_ids[] = $haya_post_like_post['pid'];
+		}
+	}
+	
+	$haya_post_like_life_time = isset($haya_post_like_config['hot_like_life_time']) ? intval($haya_post_like_config['hot_like_life_time']) : 86400;
+	$haya_post_like_hot_posts = haya_post_like_find_hot_posts_by_tid_cache($thread['tid'], $hot_like_post_size, $hot_like_post_low_count, $haya_post_like_life_time);
+	
+	if (!empty($haya_post_like_hot_posts)) {
+		if (isset($haya_post_like_config['hot_like_isfirst'])
+			&& $haya_post_like_config['hot_like_isfirst'] == 1
+		) {
+			$hot_like_isfirst = true;
+		} else {
+			$hot_like_isfirst = false;
+		}
+		
+		$haya_post_like_hot_post_isfirst = false;
+		foreach ($haya_post_like_hot_posts as $haya_post_like_hot_post_key => $haya_post_like_hot_post) {
+			if ($haya_post_like_hot_post['isfirst'] == 1 && !$hot_like_isfirst) {
+				unset($haya_post_like_hot_posts[$haya_post_like_hot_post_key]);
+				$haya_post_like_hot_post_isfirst = true;
+			} else {
+				$haya_post_like_post_ids[] = $haya_post_like_hot_post['pid'];
+				
+				// 移除楼层
+				$haya_post_like_hot_posts[$haya_post_like_hot_post_key]['floor'] = '';
+			}
+		}
+		
+		if (!$haya_post_like_hot_post_isfirst && (count($haya_post_like_hot_posts)) >= $hot_like_post_size) {
+			array_pop($haya_post_like_hot_posts);
+		}
+	}
+	
+	$haya_post_like_pids = haya_post_like_find_by_pids_and_uid($haya_post_like_post_ids, $uid, count($haya_post_like_post_ids));
+}
+
+if($ajax) {
+	$thread = thread_safe_info($thread);
+	foreach($postlist as &$post) $post = post_safe_info($post);
+	message(0, array('thread'=>$thread, 'postlist'=>$postlist));
+}
 	
 	include _include(APP_PATH.'view/htm/thread.htm');
 }

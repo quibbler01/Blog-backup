@@ -16,7 +16,12 @@
 		</div>
 	</main>
 	
+	<!--zidiu.com/技术维护QQ：515138-->
+
+<div class="Tp1" style="font-size: 12px; font-family: Verdana; color: rgb(153, 153, 153); margin: 24px 0px 20px; padding: 4px; line-height: 20px; border-top-width: 1px; border-top-style: dashed; border-bottom-width: 1px; border-bottom-style: dashed; text-align:center;"><?php echo setting_get('zidiu_mzsmdb');?></div>
 	
+
+
 	
 	<?php include _include(APP_PATH.'view/htm/footer_nav.inc.htm');?>
 	
@@ -50,11 +55,86 @@
 	xn.options.water_image_url = '<?php echo $conf['logo_water_url'];?>';	// 水印图片 / watermark image
 	</script>
 	<script src="<?php echo $conf['view_url'];?>js/bbs.js<?php echo $static_version;?>"></script>
-	
+	<script>
+    //前端设置cookie
+    if(!$.cookie('_wish_accesscount_visited')){
+        $.cookie('_wish_accesscount_visited', 1, <?php echo strtotime(date('Y-m-d 23:59:59')) - time();?>, '/');
+    }
+</script><script>
+// 版主管理：精华
+/*
+$('.mod-button button.digest').on('click', function() {
+	var modtid = $('input[name="modtid"]').checked();
+	if(modtid.length == 0) return $.alert(lang.please_choose_thread);
+	var radios = xn.form_radio('digest', {"0": "<?php echo lang('digest_0');?>", "1": "<?php echo lang('digest_1');?>","2": "<?php echo lang('digest_2');?>", "3": "<?php echo lang('digest_3');?>"});
+	$.confirm("<?php echo lang('set_digest_thread');?>", function() {
+		var tids = xn.implode('_', modtid);
+		var digest = $('input[name="digest"]').checked();
+		var postdata = {digest: digest};
+		$.xpost(xn.url('mod-digest-'+tids), postdata, function(code, message) {
+			if(code != 0) return $.alert(message);
+			$.alert(message).delay(1000).location('');
+		});
+	}, {'body': '<p>'+"<?php echo lang('digest_level');?>"+'：'+radios+'</p>'});
+})*/
+</script><script src="plugin/zl_share/static/jquery.share.min.js"></script>
+
 	
 </body>
 
 </html>
+<div id="scroll_to_top" class="d-fixed" style="position: fixed; _position: absolute; bottom: 160px; right: 10px; width: 70px; height: 70px;display: none;">
+	<a href="javascript:void(0);" style="width: 70px; height: 70px; display: inline-block; background: url(plugin/wr_direct/top.png) no-repeat; outline: none;" title="回到顶部"></a>
+</div>
+<div id="scroll_to_end" class="d-fixed" style="position: fixed; _position: absolute; bottom: 100px; right: 10px; width: 70px; height: 70px;display: none;">
+	<a href="javascript:void(0);" style="width: 70px; height: 70px; display: inline-block; background: url(plugin/wr_direct/end.png) no-repeat; outline: none;" title="直达底部"></a>
+</div>
 
+<script>
+//回到顶部
+var jscroll_to_top = $('#scroll_to_top');
+$(window).scroll(function() {
+	if ($(window).scrollTop() > 0) {
+	   jscroll_to_top.fadeIn('slow');
+	} else {
+		jscroll_to_top.fadeOut('slow');
+	}
+});
+jscroll_to_top.on('click', function() {
+	$('html,body').animate({scrollTop: 0}, 'slow');
+});
+//直达底部
+var jscroll_to_end = $('#scroll_to_end');
+$(window).scroll(function() {
+	if ($(window).scrollTop() < ($(document).height()-$(window).height()) ) {
+	   jscroll_to_end.fadeIn('slow');
+	} else {
+		jscroll_to_end.fadeOut('slow');
+	}
+});
+jscroll_to_end.on('click', function() {
+	$('html,body').animate({scrollTop: $(document).height() }, 'slow');
+});
+</script>
+
+<div id="scroll_to_top" class="d-fixed" style="position: fixed; _position: absolute; bottom: 80px; right: 10px; width: 70px; height: 70px; display: none;">
+	<a href="javascript:void(0);" style="width: 70px; height: 70px; display: inline-block; background: url(plugin/xn_top/scroll_top.png) no-repeat; outline: none;" title="返回顶部"></a>
+</div>
+	
+<script>
+// 返回顶部
+var jscroll_to_top = $('#scroll_to_top');
+$(window).scroll(function() {
+	if ($(window).scrollTop() >= 500) {
+	   jscroll_to_top.fadeIn(300);
+	} else {
+		jscroll_to_top.fadeOut(300);
+	}
+});
+
+jscroll_to_top.on('click', function() {
+	$('html,body').animate({scrollTop: '0px' }, 100);
+});
+</script>
 
 <?php echo cron_run();?>

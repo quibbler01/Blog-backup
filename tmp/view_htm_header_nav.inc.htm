@@ -49,7 +49,9 @@
 				</ul>
 				<!-- 右侧：用户 -->
 				<ul class="navbar-nav">
-					
+					<li class="nav-item hidden-lg">
+	<a class="nav-link" href="<?php echo url('search');?>"><i class="icon-search"></i> <?php echo lang('search');?></a>
+</li>
 				<?php if(empty($uid)) { ?>
 					<li class="nav-item"><a class="nav-link" href="<?php echo url('user-login');?>"><i class="icon-user"></i> <?php echo lang('login');?></a></li>
 					<!--<li class="nav-item"><a class="nav-link" href="<?php echo url('user-create');?>"><?php echo lang('register');?></a></li>-->

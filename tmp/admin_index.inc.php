@@ -35,6 +35,12 @@ switch ($route) {
 	case 'thread':		include _include(ADMIN_PATH.'route/thread.php'); 		break;
 	case 'plugin':		include _include(ADMIN_PATH.'route/plugin.php'); 	break;
 	
+
+case 'attachlite':	
+	include _include(APP_PATH.'plugin/haya_attach_lite/route/attach.php'); 
+	break;
+	
+
 	default: 
 		
 		include _include(ADMIN_PATH.'route/index.php'); 	break;

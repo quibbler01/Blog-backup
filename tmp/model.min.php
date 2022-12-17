@@ -310,6 +310,11 @@ function user__delete($uid) {
 	
 	$r = db_delete('user', array('uid'=>$uid));
 	
+
+// 只删除用户的点赞记录，点赞统计可能会不准确，不需要去重新统计点赞数量
+haya_post_like_delete_by_uid($uid);
+
+
 	return $r;
 }
 
@@ -1246,6 +1251,12 @@ function thread_create($arr, &$pid) {
 	forum_list_cache_delete();
 	
 	
+	if(search_type() == 'fulltext') {
+		$s = strip_tags($subject.' '.$message);
+		$words = search_cn_encode($s);
+		db_create('thread_search', array('tid'=>$tid, 'message'=>$words));
+	}
+
 	
 	return $tid;
 }
@@ -1315,6 +1326,9 @@ function thread_delete($tid) {
 	$uid = $thread['uid'];
 	
 	
+	thread_digest_delete($tid, $uid, $fid);
+	db_delete('thread_search', array('tid'=>$tid));
+
 	
 	// 删除所有回帖，同时更新 posts 统计数
 	$n = post_delete_by_tid($tid);
@@ -1635,20 +1649,7 @@ function thread_top_find($fid = 0) {
 	}
 	$tids = arrlist_values($threadlist, 'tid');
 	$threadlist = thread_find_by_tids($tids);
-	//<?
-global $wish_indexhideforum;
-if(!empty($threadlist) && !empty($wish_indexhideforum) && !empty($wish_indexhideforum['hide_forums']) && $wish_indexhideforum['also_hide_tops']=='yes'){
-    //这种方法可以避免$key和fid不一致的意外
-    foreach ($threadlist as $key => $item){
-        if(in_array($item['fid'], $wish_indexhideforum['hide_forums'])){
-            unset($threadlist[$key]);
-        }
-    }
-    //也可以用这种方法，性能高了一点点
-    /*foreach ($wish_indexhideforum['hide_forums'] as $hide_id){
-        unset($threadlist[$hide_id]);
-    }*/
-}
+	
 	return $threadlist;
 }
 
@@ -1728,6 +1729,10 @@ function post__delete($pid) {
 	
 	$r = db_delete('post', array('pid'=>$pid));
 	
+
+haya_post_like_delete_by_pid($pid);	
+
+
 	return $r;
 }
 
@@ -1777,6 +1782,12 @@ function post_create($arr, $fid, $gid) {
 	user_update_group($uid);
 	
 	
+	if(search_type() == 'fulltext') {
+		$s = strip_tags($message);
+		$words = search_cn_encode($s);
+		db_create('post_search', array('pid'=>$pid, 'message'=>$words));
+	}
+
 	
 	return $pid;
 }
@@ -1803,6 +1814,24 @@ function post_update($pid, $arr, $tid = 0) {
 	attach_assoc_post($pid);
 	
 	
+
+$message = $arr['message'];
+if($isfirst) {
+	if(search_type() == 'fulltext') {
+		$thread = thread__read($tid);
+		$s = strip_tags($thread['subject'].' '.$message);
+		$words = search_cn_encode($s);
+		db_replace('thread_search', array('tid'=>$tid, 'message'=>$words));
+	}
+} else {
+	if(search_type() == 'fulltext') {
+		$s = strip_tags($message);
+		$words = search_cn_encode($s);
+		db_replace('post_search', array('pid'=>$pid, 'message'=>$words));
+	}
+}
+
+
 	return $r;
 }
 
@@ -1836,6 +1865,8 @@ function post_delete($pid) {
 	$fid = $thread['fid'];
 	
 	
+	db_delete('post_search', array('pid'=>$pid));
+
 	
 	if(!$post['isfirst']) {
 		thread__update($tid, array('posts-'=>1));
@@ -1894,6 +1925,91 @@ function post_find_by_tid($tid, $page = 1, $pagesize = 50) {
 	global $conf;
 	
 	
+
+$haya_post_info_config = GLOBALS('haya_post_info_config');
+
+if ((isset($haya_post_info_config['show_see_him']) 
+	&& $haya_post_info_config['show_see_him'] == 1)
+	|| (isset($haya_post_info_config['show_see_first_floor']) 
+	&& $haya_post_info_config['show_see_first_floor'] == 1)
+	|| (isset($haya_post_info_config['show_post_sort']) 
+	&& $haya_post_info_config['show_post_sort'] == 1)
+) {
+
+	$thread = GLOBALS('thread');
+
+	if (!empty($thread)) {
+		
+		if ((isset($haya_post_info_config['show_see_him']) 
+			&& $haya_post_info_config['show_see_him'] == 1)
+			|| (isset($haya_post_info_config['show_see_first_floor']) 
+			&& $haya_post_info_config['show_see_first_floor'] == 1)
+		) {
+			$haya_post_info_see_user = _REQUEST('user');
+		} else {
+			$haya_post_info_see_user = '';
+		}
+		
+		if ((isset($haya_post_info_config['show_post_sort']) 
+			&& $haya_post_info_config['show_post_sort'] == 1)
+		) {
+			$haya_post_info_post_default_sort = isset($haya_post_info_config['post_default_sort']) ? trim($haya_post_info_config['post_default_sort']) : '';
+			$haya_post_info_orderby = _REQUEST('sort', $haya_post_info_post_default_sort);
+		} else {
+			$haya_post_info_orderby = 'asc';
+		}
+
+		if (strtolower($haya_post_info_orderby) == 'desc') {
+			
+			$haya_post_info_orderby = array('pid' => -1);
+			
+			$haya_post_info_cond = array('tid' => $tid);
+
+			if (!empty($haya_post_info_see_user)) {
+				$haya_post_info_cond['uid'] = intval($haya_post_info_see_user);
+			}
+			
+			$postlist = post__find($haya_post_info_cond, $haya_post_info_orderby, $page, $pagesize);
+			
+			if ($page == 1) {
+				$first_thread = post__read($thread['firstpid']);
+				$postlist += array($thread['firstpid'] => $first_thread);
+			}
+			
+			if (!empty($postlist)) {
+				$floor = $thread['posts'] - ($page - 1) * $pagesize + 1;
+				foreach ($postlist as & $post) {
+					$post['floor'] = $floor--;
+					post_format($post);
+				}
+			}
+			
+			return $postlist;	
+
+		} elseif (!empty($haya_post_info_see_user)) {
+			$haya_post_info_cond = array('tid' => $tid, 'uid' => intval($haya_post_info_see_user));
+			
+			$postlist = post__find($haya_post_info_cond, array('pid' => 1), $page, $pagesize);
+			if ($page == 1) {
+				$first_thread = post__read($thread['firstpid']);
+				$postlist += array($thread['firstpid'] => $first_thread);
+			}
+			
+			if (!empty($postlist)) {
+				$floor = ($page - 1) * $pagesize + 1;
+				foreach ($postlist as & $post) {
+					$post['floor'] = $floor++;
+					post_format($post);
+				}
+			}
+			
+			return $postlist;
+		}
+	}
+
+}
+	
+
 	
 	$postlist = post__find(array('tid'=>$tid), array('pid'=>1), $page, $pagesize);
 	
@@ -1980,6 +2096,69 @@ function post_file_list_html($filelist, $include_delete = FALSE) {
 	if(empty($filelist)) return '';
 	
 	
+
+$haya_post_attach_lite_rand = md5(time().xn_rand(10));
+
+?>
+<style>
+.message > .fieldset {
+	margin-top: 20px;
+}
+.attachlist {
+	padding: 0;
+}
+.attachlist li {
+	list-style-type: none;
+	font-size: 15px;
+	margin-bottom: 8px;
+}
+.attachlist li:last-child {
+	border-bottom: 0;
+	margin-bottom: 0;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> {
+	display: inline-block;
+	position: relative;
+	max-width: 50%;
+	cursor: pointer;
+	transition: all 0.5s linear;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?>.open {
+	max-width: 100%;
+	transition: all 0.5s linear;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> .haya-post-attach-lite-img {
+	width: 100%;
+    margin-bottom: 0 !important;
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> .haya-post-attach-lite-search {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	text-decoration: none;
+	border-radius: 4px;
+	padding: 0 5px;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	background: rgba(255, 255, 255, 0.3);
+}
+.attachlist li .haya-post-attach-lite-info-<?php echo $haya_post_attach_lite_rand; ?> .haya-post-attach-lite-search:hover {
+	border: 1px solid rgba(255, 255, 255, 0.5);
+	background: rgba(255, 255, 255, 0.5);
+}
+</style>
+<script>
+function haya_post_attach_lite_open_<?php echo $haya_post_attach_lite_rand; ?>(id) {
+	var thiz = $(id).parent();
+	if (thiz.hasClass("open")) {
+		thiz.removeClass("open");
+	} else {
+		thiz.addClass("open");
+	}
+}
+</script>
+<?php
+
+
 	
 	$s = '<fieldset class="fieldset">'."\r\n";
 	$s .= '<legend>上传的附件：</legend>'."\r\n";
@@ -1991,8 +2170,27 @@ function post_file_list_html($filelist, $include_delete = FALSE) {
 		$s .= '			'.$attach['orgfilename']."\r\n";
 		$s .= '		</a>'."\r\n";
 		
+
+$s .= "<span class='text-grey ml-1'>(".lang("haya_post_attach_lite_filesize")."：".humansize($attach['filesize'])."，".lang("haya_post_attach_lite_downloads")."：".intval($attach['downloads']).")</span>";
+
+
 		$include_delete AND $s .= '		<a href="javascript:void(0)" class="delete ml-3"><i class="icon-remove"></i> '.lang('delete').'</a>'."\r\n";
 		
+
+if (strtolower($attach['filetype']) == 'image') {
+	$s .= '<div class="row mt-1" data-aid="'.$attach['aid'].'">';
+	$s .= '		<div class="col-md-12">';
+	$s .= '			<span class="haya-post-attach-lite-info haya-post-attach-lite-info-'.$haya_post_attach_lite_rand.'">';
+	$s .= '				<img class="haya-post-attach-lite-img" onclick="javascript:haya_post_attach_lite_open_'.$haya_post_attach_lite_rand.'(this);" src="'.$attach['url'].'" alt="'.$attach['orgfilename'].'" title="'.$attach['orgfilename'].'" />';
+	$s .= '				<a class="haya-post-attach-lite-search" href="'.$attach['url'].'" target="_blank" title="'.lang("haya_post_attach_lite_open").'">';
+	$s .= '					<i class="icon-search"></i>';
+	$s .= '				</a>';
+	$s .= '			</span>';
+	$s .= '		</div>';
+	$s .= '</div>';
+} 
+
+
 		$s .= '</li>'."\r\n";
 	};
 	$s .= '</ul>'."\r\n";
@@ -2445,6 +2643,11 @@ function is_username($username, &$err = '') {
 		return FALSE;
 	}
 	
+
+ elseif(qt_check_sensitive_word($username, 'username_sensitive_words', $er)) {
+		$err = lang('username_contain_sensitive_word') . $er;
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -2466,6 +2669,22 @@ function is_password($password, &$err = '') {
 }
 
 
+function qt_check_sensitive_word($s, $type, &$error) {
+		$sensitive_words = kv_get('qt_sensitive_words');
+		if(!isset($sensitive_words[$type])  || !is_array($sensitive_words[$type])) {
+			return false;
+		}
+		foreach($sensitive_words[$type] as $v) {
+			if(empty($v)) {
+				continue;
+			}
+			if(strpos(strtolower($s),strtolower($v)) !== false) {
+				$error = $v;
+				return true;
+			}
+		}
+		return false;
+	}
 
 
 ?><?php
@@ -2570,7 +2789,10 @@ function runtime_init() {
 		cache_set('runtime', $runtime);
 		
 	}
-	
+	if($runtime === NULL || !isset($runtime['digests'])) {
+	$runtime['digests'] = thread_digest_count();
+	cache_set('runtime', $runtime);
+}
 	return $runtime;
 }
 
@@ -2773,7 +2995,7 @@ function cron_run($force = 0) {
 			// 如果是升级过来和采集的数据，这里会很卡。
 			// table_day_cron($time - 8 * 3600);
 			
-			
+				ipaccess_truncate();
 			
 			cache_delete('cron_lock_2');
 		}
@@ -3438,6 +3660,490 @@ function online_list_cache() {
 	}
 	return $onlinelist;
 }
+
+
+?><?php
+
+
+// 分页
+function haya_post_info_pagination_tpl($url, $text, $active = '') {
+	$haya_post_info_pagination_tpl = '<a href="{url}" class="px-1 haya-post-info-link {active}">{text}</a>';
+	return str_replace(array('{url}', '{text}', '{active}'), array($url, $text, $active), $haya_post_info_pagination_tpl);
+}
+
+function haya_post_info_pagination($url, $totalnum, $page, $pagesize = 20) {
+	$totalpage = ceil($totalnum / $pagesize);
+	if ($totalpage < 2) return '';
+	$page = min($totalpage, $page);
+	$shownum = 2;
+
+	$start = 1;
+	$end = min($totalpage, $page + $shownum);
+
+	$right = $page + $shownum - $totalpage;
+	$right > 0 && $start = max(1, $start -= $right);
+	$left = $page - $shownum;
+	$left < 0 && $end = min($totalpage, $end -= $left);
+
+	$s = '';
+	if ($start > 1) {
+		$s .= haya_post_info_pagination_tpl(str_replace('{page}', 1, $url), '1'.($start > 2 ? '...' : ''));
+	}
+	for ($i = $start; $i <= $end; $i++) {
+		$s .= haya_post_info_pagination_tpl(str_replace('{page}', $i, $url), $i, $i == $page ? ' active' : '');
+	}
+	if ($end != $totalpage) {
+		$s .= haya_post_info_pagination_tpl(str_replace('{page}', $totalpage, $url), ($totalpage - $end > 1 ? '...' : '').$totalpage);
+	}
+	return $s;
+}
+
+// 重写首页数据
+function haya_post_info_thread_count($cond = array()) {
+	$threads = thread_count($cond);
+	return $threads;
+}
+
+function haya_post_info_thread__find_by_fids($fids, $threads = 100, $page = 1, $pagesize = 20, $order = 'lastpid') {
+	global $conf, $runtime;
+	
+	$cond = array();
+	if (!empty($fids)) {
+		$cond['fid'] = $fids;
+	}
+	
+	$desc = TRUE;
+	$limitpage = 50000; // 如果需要防止 CC 攻击，可以调整为 5000
+	if ($page > 100) {
+		$totalpage = ceil($threads / $pagesize);
+		$halfpage = ceil($totalpage / 2);
+		if ($halfpage > $limitpage && $page < ($totalpage - $limitpage)) {
+			$page = $limitpage;
+		}
+		if ($page > $halfpage) {
+			$page = max(1, $totalpage - $page + 1) ;
+			$threadlist = thread_find($cond, array($order=>1), $page, $pagesize);
+			$threadlist = array_reverse($threadlist, TRUE);
+			$desc = FALSE;
+		}
+	}
+	if ($desc) {
+		$orderby = array($order=>-1);
+		$threadlist = thread_find($cond, $orderby, $page, $pagesize);
+	}
+	
+	return $threadlist;
+}
+
+function haya_post_info_thread_find_by_fids($fids, $threads = 100, $page = 1, $pagesize = 20, $order = 'lastpid') {
+	global $conf;
+
+	$threadlist = haya_post_info_thread__find_by_fids($fids, $threads, $page, $pagesize, $order);
+	
+	if ($order == $conf['order_default'] && $page == 1) {
+		$toplist3 = thread_top_find(0);
+		// $toplist1 = thread_top_find($fids); 取消板块首页置顶
+		$threadlist = $toplist3 + $threadlist;
+	}
+	
+	return $threadlist;
+}
+
+function haya_post_info_user_read_by_username($username) {
+	return db_find_one('user', array(
+		'username' => $username
+	));
+}
+
+
+?><?php
+
+
+function haya_post_like__find(
+	$cond = array(), 
+	$orderby = array(), 
+	$page = 1, 
+	$pagesize = 20
+) {
+	$post_likes = db_find('post_like', $cond, $orderby, $page, $pagesize);
+	
+	return $post_likes;
+}
+
+function haya_post_like_create($arr) {
+	$r = db_create('post_like', $arr);
+	return $r;
+}
+
+function haya_post_like_count($cond = array()) {
+	$n = db_count('post_like', $cond);
+	return $n;
+}
+
+function haya_post_like_read_by_uid_and_pid($uid, $pid) {
+	$like = db_find_one('post_like', array('pid' => $pid, 'uid' => $uid));
+	return $like;
+}
+
+function haya_post_like_find(
+	$cond = array(), 
+	$orderby = array(), 
+	$page = 1, 
+	$pagesize = 20
+) {
+	$post_likes = db_find('post_like', $cond, $orderby, $page, $pagesize);
+	
+	if (!empty($post_likes)) {
+		foreach ($post_likes as & $post_like) {
+			$post_like['post'] = post_read_cache($post_like['pid']);
+			$post_like['user'] = user_read_cache($post_like['uid']);
+		}
+	}	
+	
+	return $post_likes;
+}
+
+function haya_post_like_find_by_uid_and_pid($uid, $pid) {
+	$r = db_find('post_like', array('pid' => $pid, 'uid' => $uid));
+	return $r;
+}
+
+function haya_post_like_find_by_uid_and_tid($uid, $tid, $num = 20) {
+	$r = haya_post_like_find(array('tid' => $tid, 'uid' => $uid), array('create_date' => -1), 1, $num);
+	return $r;
+}
+
+function haya_post_like_find_by_pid($pid, $num = 20) {
+	$haya_post_likes = haya_post_like_find(array('pid' => $pid), array('create_date' => -1), 1, $num); 
+	
+	return $haya_post_likes;
+}
+
+function haya_post_like_find_by_pids($pids, $num = 1000) {
+	if (!$pids) {
+		return array();
+	}
+
+	$orderby = array('create_date' => -1);
+	$r = db_find('post_like', array('pid' => $pids), $orderby, 1, $num, 'pid');
+	return $r;
+}
+
+function haya_post_like_find_by_pids_and_uid($pids, $uid, $num = 1000) {
+	if (!$pids) {
+		return array();
+	}
+
+	$orderby = array('create_date' => -1);
+	$r = db_find('post_like', array('pid' => $pids, 'uid' => $uid), $orderby, 1, $num, 'pid');
+	return $r;
+}
+
+function haya_post_like_find_tids_by_uid($uid, $pagesize = 10000) {
+	$post_likes = haya_post_like__find(array('uid' => $uid), array('create_date' => -1), 1, $pagesize, '', array('tid')); 	
+	$tids = arrlist_values($post_likes, 'tid');
+	
+	return $tids;
+}
+
+function haya_post_like_delete_by_tid($tid) {
+	$r = db_delete('post_like', array('tid' => $tid));
+	return $r;
+}
+
+function haya_post_like_delete_by_pid($pid) {
+	$r = db_delete('post_like', array('pid' => $pid));
+	return $r;
+}
+
+function haya_post_like_delete_by_uid($uid) {
+	$r = db_delete('post_like', array('uid' => $uid));
+	return $r;
+}
+
+function haya_post_like_delete_by_pid_and_uid($pid, $uid) {
+	$r = db_delete('post_like', array('pid' => $pid, 'uid' => $uid));
+	return $r;
+}
+
+// likes + 1
+function haya_post_like_loves($pid, $n = 1) {
+	if ($n < 0) {
+		$post = post__read($pid);
+		if ($post['likes'] <= 0) {
+			return true;
+		}
+	}
+	
+	$r = db_update('post', array('pid' => $pid), array('likes+' => $n));
+	return $r;
+}
+
+function haya_post_like_find_hot_posts_by_tid($tid, $num = 5, $thumbup = 10) {
+	$haya_post_likes = post_find(array('tid' => $tid, 'likes' => array(">=" => $thumbup)), array('likes' => -1, 'create_date' => -1), 1, $num); 
+	
+	return $haya_post_likes;
+}
+
+// 过期时间 1天 = 86400 = 24 * 60 * 60
+function haya_post_like_find_hot_posts_by_tid_cache($tid, $num = 5, $thumbup = 10, $life_time = 86400) {
+	$life_time = intval($life_time);
+
+	$haya_post_like_hot_posts = array();
+	if ($life_time <= 0) {
+		$haya_post_like_hot_posts = post_find(array('tid' => $tid, 'likes' => array(">=" => $thumbup)), array('likes' => -1, 'create_date' => -1), 1, $num); 
+	} else {
+		$haya_post_likes = haya_post_like_cache_get($tid);
+
+		$haya_post_like_time = time();
+		if ($haya_post_likes === NULL
+			|| $haya_post_like_time > $haya_post_likes['life_time']
+		) {
+			$haya_post_like_hot_loves = post__find(array('tid' => $tid, 'likes' => array(">=" => $thumbup)), array('likes' => -1, 'create_date' => -1), 1, $num); 
+			$haya_post_like_hot_love_pids = array();
+			
+			if (!empty($haya_post_like_hot_loves)) {
+				foreach ($haya_post_like_hot_loves as $_haya_post_like_hot_love) {
+					$haya_post_like_hot_love_pids[] = $_haya_post_like_hot_love['pid'];
+				}
+			}
+			
+			$haya_post_likes = array(
+				'pids' => $haya_post_like_hot_love_pids, 
+				'life_time' => $haya_post_like_time + $life_time,
+			);
+			
+			haya_post_like_cache_set($tid, $haya_post_likes);
+		}
+		
+		$haya_post_like_hot_posts = array();
+		if ( isset($haya_post_likes['pids']) && !empty($haya_post_likes['pids'])) {
+			$haya_post_like_hot_posts = post_find(array('tid' => $tid, 'pid' => $haya_post_likes['pids']), array('likes' => -1, 'create_date' => -1), 1, $num); 
+		}
+	}
+	
+	return $haya_post_like_hot_posts;	
+}
+
+// 插件自定义缓存
+$g_haya_post_like_cache = FALSE;
+function haya_post_like_cache_get($k) {
+	global $g_haya_post_like_cache;
+	$g_haya_post_like_cache === FALSE AND $g_haya_post_like_cache = cache_get('haya_post_like');
+	empty($g_haya_post_like_cache) AND $g_haya_post_like_cache = array();
+	return array_value($g_haya_post_like_cache, $k, NULL);
+}
+
+function haya_post_like_cache_set($k, $v) {
+	global $g_haya_post_like_cache;
+	$g_haya_post_like_cache === FALSE AND $g_haya_post_like_cache = cache_get('haya_post_like');
+	empty($g_haya_post_like_cache) AND $g_haya_post_like_cache = array();
+	$g_haya_post_like_cache[$k] = $v;
+	return cache_set('haya_post_like', $g_haya_post_like_cache);
+}
+
+function haya_post_like_cache_delete($k) {
+	global $g_haya_post_like_cache;
+	$g_haya_post_like_cache === FALSE AND $g_haya_post_like_cache = cache_get('haya_post_like');
+	empty($g_haya_post_like_cache) AND $g_haya_post_like_cache = array();
+	if(isset($g_haya_post_like_cache[$k])) unset($g_haya_post_like_cache[$k]);
+	cache_set('haya_post_like', $g_haya_post_like_cache);
+	return TRUE;
+}
+
+function haya_post_like_humandate($timestamp, $lan = array()) {
+	$time = $_SERVER['time'];
+	$lang = $_SERVER['lang'];
+	
+	static $custom_humandate = NULL;
+	if ($custom_humandate === NULL) $custom_humandate = function_exists('custom_humandate');
+	if ($custom_humandate) return custom_humandate($timestamp, $lan);
+	
+	$seconds = $time - $timestamp;
+	$lan = empty($lang) ? $lan : $lang;
+	$haya_lan = array(
+		'today' => '今天 ',
+		'hour_ago' => '小时前',
+		'minute_ago' => '分钟前',
+		'second_ago' => '秒前',
+	);
+	$lan = array_merge($haya_lan, $lan);
+	
+	if ($seconds > 43200) {
+		if (date('Y-m-d', $timestamp) == date('Y-m-d')) {
+			return $lan['today'].date('H:i', $timestamp);
+		} elseif (date('Y', $timestamp) == date('Y')) {
+			return date('m-d H:i', $timestamp);
+		} else {
+			return date('Y-m-d H:i', $timestamp);
+		}
+	} elseif($seconds > 3600) {
+		return floor($seconds / 3600).$lan['hour_ago'];
+	} elseif($seconds > 60) {
+		return floor($seconds / 60).$lan['minute_ago'];
+	} else {
+		return $seconds.$lan['second_ago'];
+	}
+}
+
+
+?><?php
+
+
+function search_type() {
+	static $search_conf = FALSE;
+	if($search_conf === FALSE) $search_conf = kv_get('search_conf');;
+	return $search_conf['type'];
+}
+
+function search_message_format($s) {
+	$s = xn_substr(str_replace('&amp;nbsp;', ' ', htmlspecialchars(strip_tags($s))), 0, 200);
+	return $s;
+}
+
+function search_keyword_highlight($s, $keyword_arr) {
+	foreach($keyword_arr as $keyword) {
+		$s = str_ireplace($keyword, '<span class="text-danger">'.$keyword.'</span>', $s);
+	}
+	return $s;
+}
+
+function search_keyword_safe($s) {
+	$s = str_replace(array('\'', '\\', '"', '%', '<', '>', '`', '*', '&', '#'), '', $s);
+	$s = preg_replace('#\s+#', ' ', $s);
+	$s = trim($s);
+	//$s = preg_replace('#[^\w\-\x4e00-\x9fa5]+#i', '', $s);
+	return $s;
+}
+
+// Chinese character unicode by axiuno@gmail.com
+function search_cn_encode($s) {
+	// 对 UTF-8 字符的汉字进行编码，转化为 mysql 可以索引的 word
+        $r = '';
+        
+        // 替换特殊字符
+        $special_arr = array(
+        	'０' , '１' , '２' , '３' , '４' ,  
+		'５' , '６' , '７' , '８' , '９' ,   
+		'Ａ' , 'Ｂ' , 'Ｃ' , 'Ｄ' , 'Ｅ' ,  
+		'Ｆ' , 'Ｇ' , 'Ｈ' , 'Ｉ' , 'Ｊ' ,   
+		'Ｋ' , 'Ｌ' , 'Ｍ' , 'Ｎ' , 'Ｏ' ,  
+		'Ｐ' , 'Ｑ' , 'Ｒ' , 'Ｓ' , 'Ｔ' ,   
+		'Ｕ' , 'Ｖ' , 'Ｗ' , 'Ｘ' , 'Ｙ' ,  
+		'Ｚ' , 'ａ' , 'ｂ' , 'ｃ' , 'ｄ' ,   
+		'ｅ' , 'ｆ' , 'ｇ' , 'ｈ' , 'ｉ' ,  
+		'ｊ' , 'ｋ' , 'ｌ' , 'ｍ' , 'ｎ' ,   
+		'ｏ' , 'ｐ' , 'ｑ' , 'ｒ' , 'ｓ' ,  
+		'ｔ' , 'ｕ' , 'ｖ' , 'ｗ' , 'ｘ' ,   
+		'ｙ' , 'ｚ' , '－' , '　' , '：' ,  
+		'．' , '，' , '／' , '％' , '＃' ,  
+		'！' , '＠' , '＆' , '（' , '）' ,  
+		'＜' , '＞' , '＂' , '＇' , '？' ,  
+		'［' , '］' , '｛' , '｝' , '＼' ,  
+		'｜' , '＋' , '＝' , '＿' , '＾' ,  
+		'￥' , '￣' , '｀', '《', '》',
+		'【', '】', '〖', '〗', '『', '』', 
+		'我', '你', '不', '是', '的', '了',
+		'nbsp', '　',
+        );
+        $s = str_replace($special_arr, '', $s);
+        
+        $len = strlen($s);
+	
+	$f1 = intval(base_convert('10000000', 2, 10)); 
+	$f2 = intval(base_convert('11000000', 2, 10)); 
+	$f3 = intval(base_convert('11100000', 2, 10)); 
+
+        for($i = 0; $i < $len; $i++) {
+                $o = ord($s[$i]);
+                if($o < 0x80) {
+                        if(($o >= 48 && $o <= 57) || ($o >= 97 && $o <= 122) || $o == 0x20) {
+				$r .= $s[$i]; // 0-9 a-z
+			} elseif($o >= 65 && $o <= 90) {
+                                $r .= strtolower($s[$i]); // A-Z
+                        } else {
+                                $r .= ' ';
+                        }
+                } else {
+			if($i + 5 >= $len) break;
+			// 校验是否为正常的 UTF-8 字符，在 PHP7 某些版本下 iconv() 会导致 nginx 出现 502
+			$b1 = ord($s[$i]);
+			$b2 = ord($s[$i+1]);
+			$b3 = ord($s[$i+2]);
+			$b4 = ord($s[$i+3]);
+			$b5 = ord($s[$i+4]);
+			$b6 = ord($s[$i+5]);
+			if(
+				($b1 & $f3) == $f3 && 
+				(($b2 & $f1) == $f1 || ($b2 & $f2) == $f2) && 
+				($b3 & $f1) == $f1
+				&&
+				($b4 & $f3) == $f3 && 
+				(($b5 & $f1) == $f1 || ($b5 & $f2) == $f2) && 
+				($b6 & $f1) == $f1
+				
+			) {
+				$z = $s[$i].$s[$i+1].$s[$i+2].$s[$i+3].$s[$i+4].$s[$i+5];
+				$i += 2;
+				//$t = iconv('UTF-8', 'UCS-2', $z);
+				//$r .= '  u'.bin2hex($t).' '; // uF1F2
+				$r .= '  '.$z.' '; // uF1F2
+			} else {
+				continue;
+			}
+                }
+        }
+        $r = preg_replace('#\s\w{1}\s#', ' ', $r);
+	$r = trim(preg_replace('#\s+#', ' ', $r));
+        return $r;
+}
+
+
+// Chinese character unicode by axiuno@gmail.com
+function search_cn_encode_by_word($s) {
+	// 对 UTF-8 字符的汉字进行编码，转化为 mysql 可以索引的 word
+        $r = '';
+        $len = strlen($s);
+	
+	$f1 = intval(base_convert('10000000', 2, 10)); 
+	$f2 = intval(base_convert('11000000', 2, 10)); 
+	$f3 = intval(base_convert('11100000', 2, 10)); 
+
+        for($i = 0; $i < $len; $i++) {
+                $o = ord($s[$i]);
+                if($o < 0x80) {
+                        if(($o >= 48 && $o <= 57) || ($o >= 97 && $o <= 122) || $o == 0x20) {
+				$r .= $s[$i]; // 0-9 a-z
+			} elseif($o >= 65 && $o <= 90) {
+                                $r .= strtolower($s[$i]); // A-Z
+                        } else {
+                                $r .= ' ';
+                        }
+                } else {
+			if($i + 2 >= $len) break;
+			// 校验是否为正常的 UTF-8 字符，在 PHP7 某些版本下 iconv() 会导致 nginx 出现 502
+			$b1 = ord($s[$i]);
+			$b2 = ord($s[$i+1]);
+			$b3 = ord($s[$i+2]);
+			if(
+				($b1 & $f3) == $f3 && 
+				(($b2 & $f1) == $f1 || ($b2 & $f2) == $f2) && 
+				($b3 & $f1) == $f1
+			) {
+				$z = $s[$i].$s[$i+1].$s[$i+2];
+				$i += 2;
+				$t = iconv('UTF-8', 'UCS-2', $z);
+				$r .= '  u'.bin2hex($t).' '; // uF1F2
+			} else {
+				continue;
+			}
+                }
+        }
+        $r = preg_replace('#\s\w{1}\s#', ' ', $r);
+	$r = trim(preg_replace('#\s+#', ' ', $r));
+        return $r;
+}
+
 
 
 ?><?php

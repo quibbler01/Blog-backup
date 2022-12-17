@@ -78,7 +78,9 @@ table.nav_tag_list td a{margin-right: 0.5rem;}
 					<li class="nav-item">
 						<a class="nav-link <?php echo $active == 'default' ? 'active' : '';?>" href="<?php echo url("forum-$fid");?>"><?php echo lang('new_thread');?></a>
 					</li>
-					
+										<li class="nav-item">
+						<a class="nav-link nav-digest  <?php echo $active == 'digest' ? 'active' : '';?>" href="<?php echo url("forum-$fid-1", array('digest'=>1) + $_GET);?>"><i class="icon-diamond flash"></i> <?php echo lang('digest_thread');?></a>
+					</li>
 				</ul>
 				
 				<div class="text-right text-small pt-1 card-header-dropdown">
@@ -147,7 +149,16 @@ table.nav_tag_list td a{margin-right: 0.5rem;}
 			</div>
 		</div>
 		
-		
+		<div class="form-group">
+	<form action="<?php echo url('search');?>" id="search_form">
+		<div class="input-group mb-3">
+			<input type="text" class="form-control" placeholder="<?php echo lang('keyword');?>" name="keyword">
+			<div class="input-group-append">
+				<button class="btn btn-primary" type="submit"><?php echo lang('search');?></button>
+			</div>
+		</div>
+	</form>
+</div>
 		<?php if($forum['announcement'] || $forum['modlist']) { ?>
 		<div class="card card-mod-info">
 			<div class="card-body">
@@ -172,7 +183,32 @@ table.nav_tag_list td a{margin-right: 0.5rem;}
 			</div>
 		</div>
 		<?php  } ?>
-		
+		<?php
+			$_forumlist = thread__find(array('fid'=>$forum['fid']), array('views'=>-1), 1, 5);
+			thread_list_access_filter($_threadlist, $gid);
+
+?>
+<div class="card">
+			<div class="card-header">
+				<h6 class="card-title">版块热门：</h6>
+			</div>
+				<div class="card-body py-3">
+			<table class="table table-hover threadlist">
+			<tbody>
+					<?php foreach($_forumlist as $_fthread) { ?>
+			<tr>
+				<td>
+					<div>
+						<a href="<?php echo url("thread-$_fthread[tid]");?>" style='font-size:12px;color:#343a40;'><?php echo $_fthread['subject'];?></a>
+					</div>
+				</td>
+			</tr>
+					<?php } ?>
+				</div>
+			</tbody>
+			</table>
+</div>
+
 	</div>
 </div>
 
@@ -185,3 +221,12 @@ table.nav_tag_list td a{margin-right: 0.5rem;}
 $('li[data-active="fid-<?php echo $fid;?>"]').addClass('active');
 </script>
 
+<script>
+jsearch_form = $('#search_form');
+jsearch_form.on('submit', function() {
+	var keyword = jsearch_form.find('input[name="keyword"]').val();
+	var url = xn.url('search-'+xn.urlencode(keyword));
+	window.location = url;
+	return false;
+});
+</script>

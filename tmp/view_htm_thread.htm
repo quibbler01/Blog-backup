@@ -1,6 +1,16 @@
 <?php include _include(APP_PATH.'view/htm/header.inc.htm');?>
 
+<?php
 
+if (isset($haya_post_like_config['like_is_delete'])
+	&& $haya_post_like_config['like_is_delete'] == 1
+) {
+	$haya_post_like_is_delete = true;
+} else {
+	$haya_post_like_is_delete = false;
+}
+
+?>
 
 <div class="row">
 	<div class="col-lg-9 main">
@@ -26,7 +36,17 @@
 						<h4 class="break-all">
 							
 							<?php echo $thread['subject'];?>
-													
+							
+<?php if($thread['digest'] > 0) { ?>
+	<?php if($thread['digest'] == 1) { ?>
+		<i class="icon-digest-1" aria-hidden="true" title="<?php echo lang('digest_1');?>"></i>
+	<?php } elseif($thread['digest'] == 2) { ?>
+		<i class="icon-digest-2" aria-hidden="true" title="<?php echo lang('digest_2');?>"></i>
+	<?php } elseif($thread['digest'] == 3) { ?>
+		<i class="icon-digest-3" aria-hidden="true" title="<?php echo lang('digest_3');?>"></i>
+	<?php } ?>
+<?php } ?>
+						
 						<?php if(!empty($thread['taglist'])) { foreach($thread['taglist'] as $tag) { ?>
 						<a href="<?php echo url("forum-$thread[fid]-1", array('tagids'=>$tag['tagid']));?>" class="badge badge-pill badge-<?php echo empty($tag['style']) ? 'secondary' : $tag['style'];?>"><?php echo $tag['name'];?></a>
 						<?php  }} ?>
@@ -40,10 +60,74 @@
 								</span>
 								<span class="date text-grey ml-2"><?php echo $thread['create_date_fmt'];?></span>
 								<span class="text-grey ml-2"><i class="icon-eye"></i> <?php echo $thread['views'];?></span>
-								
+								<?php if (isset($haya_post_info_config['show_see_him']) && $haya_post_info_config['show_see_him'] == 1) { ?>
+
+	<span class="text-grey ml-2 haya-post-info-thread-see-him">
+		<?php if (!empty($haya_post_info_see_user) && $haya_post_info_see_user == $thread['uid']) { ?>
+			<?php if (!empty($haya_post_info_orderby)) { ?>
+				<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid'], array('orderby' => $haya_post_info_orderby));?>">查看全部</a>
+			<?php } else { ?>
+				<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid']);?>">查看全部</a>
+			<?php } ?>
+		<?php } else { ?>
+			<?php if (!empty($haya_post_info_orderby)) { ?>
+				<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid'], array('orderby' => $haya_post_info_orderby, 'user' => $thread['uid']));?>">只看Ta</a>
+			<?php } else { ?>
+				<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid'], array('user' => $thread['uid']));?>">只看Ta</a>
+			<?php } ?>
+		<?php } ?>
+	</span>
+
+<?php } ?>
+
 							</div>
 							<div>
-								
+								<?php
+	
+if (isset($haya_post_like_config['thread_like_position'])
+	&& $haya_post_like_config['thread_like_position'] == 1
+) {
+
+	if (isset($haya_post_like_config['open_thread'])
+		&& $haya_post_like_config['open_thread'] == 1
+	) {
+	?>
+		<?php $haya_post_like_thread_check = haya_post_like_find_by_uid_and_pid($uid, $first['pid']); ?>
+
+		<?php 
+		if(($allowupdate || $first['allowupdate']) 
+			|| ($allowdelete || $first['allowdelete'])
+		) {
+			$haya_post_like_mr = "mr-3";
+		} else {
+			$haya_post_like_mr = "";
+		}
+		?>
+		
+		<span class="haya-thread-like <?php echo $haya_post_like_mr; ?>">
+			<?php if (!empty($uid)) { ?>
+				<?php if($haya_post_like_thread_check){ ?>
+					<a href="javascript:;" class="text-grey js-haya-post-like-thread-del" data-pid="<?php echo $first['pid'];?>" title="<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like'); ?>">
+						<i class="icon icon-thumbs-up" aria-label="<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like'); ?>"></i>
+						<span class="haya-post-like-thread-user-count"><?php echo intval($first['likes']); ?></span>
+					</a>
+				<?php } else { ?>
+					<a href="javascript:;" class="text-grey js-haya-post-like-thread-add" data-pid="<?php echo $first['pid'];?>" title="点赞本帖">
+						<i class="icon icon-thumbs-o-up" aria-label="<?php echo lang('haya_post_like_like_thread'); ?>"></i>
+						<span class="haya-post-like-thread-user-count"><?php echo intval($first['likes']); ?></span>
+					</a>
+				<?php } ?>	
+			<?php } else { ?>
+				<a href="javascript:;" class="text-grey js-haya-post-like-thread-tip" data-pid="<?php echo $first['pid'];?>" title="点赞本帖">
+					<i class="icon icon-thumbs-o-up" aria-label="<?php echo lang('haya_post_like_like_thread'); ?>"></i>
+					<span class="haya-post-like-thread-user-count"><?php echo intval($first['likes']); ?></span>
+				</a>
+			<?php } ?>
+		</span>
+	<?php } ?>
+
+<?php } ?>
+
 								<?php if($allowupdate || $first['allowupdate']) { ?>
 								<a href="<?php echo url("post-update-$thread[firstpid]");?>" class="text-grey mr-2 post_update"><i class="icon-edit"></i> <?php echo lang('edit');?></a>
 								<?php } ?>
@@ -62,7 +146,31 @@
 				
 					
 					<?php echo $first['message_fmt'];?>
-					
+					<?php
+    $config = setting_get('zl_share');
+    if($config) {
+        $config = json_decode($config, true);
+        $shares = array(
+            "qzone" => "on",
+            "qq" => "on",
+            "tencent" => "on",
+            "weibo" => "on",
+            "wechat" => "on",
+            "douban" => "on",
+            "diandian" => "on",
+            "linkedin" => "on",
+            "facebook" => "on",
+            "twitter" => "on",
+            "google" => "on"
+        );
+        $disabled = array_keys(array_diff_key($shares, $config));
+        $disabled = implode($disabled, ',');
+    } else {
+        $disabled = "";
+    }
+?>
+
+<div class="share-component" data-disabled="<?php echo $disabled; ?>"></div>
 					
 					<?php echo post_file_list_html($first['filelist']);?>
 					
@@ -76,16 +184,119 @@
 				<?php } ?>
 				</div>
 
-				
+				<?php $Sm_Statement = setting_get('Sm_Statement'); ?>
+<?php if ($Sm_Statement['radio'] == 1) { ?>
+<div class="alert alert-warning" role="alert">
+	<i class="icon-bell"></i> <?php echo $Sm_Statement['title'];?>
+	<hr>
+	<?php echo $xhtml = htmlspecialchars_decode($Sm_Statement['textarea']);?>
+</div>
+<?php } ?>
 				<div class="plugin d-flex justify-content-center mt-3">
-					
+					<?php
+	
+if (isset($haya_post_like_config['thread_like_position'])
+	&& $haya_post_like_config['thread_like_position'] == 2
+) {
+
+	if (isset($haya_post_like_config['open_thread'])
+		&& $haya_post_like_config['open_thread'] == 1
+	) {
+	?>
+		<?php $haya_post_like_thread_check = haya_post_like_find_by_uid_and_pid($uid, $first['pid']); ?>
+
+		<div class="haya-post-like px-2">
+			<span class="btn-group" role="group">
+				<?php if (!empty($uid)) { ?>
+					<?php if($haya_post_like_thread_check){ ?>
+						<button class="btn btn-outline-secondary js-haya-post-like-thread-del" data-pid="<?php echo $first['pid'];?>" title="<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like'); ?>">
+							<i class="icon icon-thumbs-up" aria-label="<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like'); ?>"></i>
+							<span class="haya-post-like-thread-btn"><?php echo lang('haya_post_like_has_like'); ?></span>
+						</button>
+					<?php } else { ?>
+						<button class="btn btn-outline-secondary js-haya-post-like-thread-add" data-pid="<?php echo $first['pid'];?>" title="点赞本帖">
+							<i class="icon icon-thumbs-o-up" aria-label="<?php echo lang('haya_post_like_like_thread'); ?>"></i>
+							<span class="haya-post-like-thread-btn"><?php echo lang('haya_post_like_like'); ?></span>
+						</button>
+					<?php } ?>	
+				<?php } else { ?>
+					<button class="btn btn-outline-secondary js-haya-post-like-thread-tip" data-pid="<?php echo $first['pid'];?>" title="点赞本帖">
+						<i class="icon icon-thumbs-o-up" aria-label="<?php echo lang('haya_post_like_like_thread'); ?>"></i>
+						<span class="haya-post-like-thread-btn"><?php echo lang('haya_post_like_like'); ?></span>
+					</button>
+				<?php } ?>
+
+				<button class="btn btn-outline-secondary" title="<?php echo lang('haya_post_like_like_count'); ?>" data-tid="<?php echo $tid;?>">
+					<span class="haya-post-like-thread-user-count"><?php echo intval($first['likes']); ?></span>
+				</button>
+			</span>
+		</div>
+	<?php } ?>
+
+<?php } ?>
+
 				</div>
-				
+				<div class="text-grey signature d-flex justify-content-between">
+	<span>
+	<?php
+	$htmlsupport = $get_signature['html'];
+	$positionlimit = $get_signature['position'];
+	$reportlink = $get_signature['report'];
+	if (isset($htmlsupport) && !empty($thread['user']['signature'])) {
+		if ( $htmlsupport == 1) {
+		    echo htmlspecialchars_decode($thread['user']['signature']);
+		} else {
+		    echo $thread['user']['signature'];
+		}
+	} else{
+		echo "这家伙太懒了，什么也没留下。";
+	}?>
+	</span>
+	<?php
+	if (isset($reportlink) && !empty($reportlink)){?>
+	<a href="<?php echo $reportlink; ?>" class="text-grey" target="_blank">&#10150</a>
+	<?php } ?>
+</div>
+
 
 			</div>
 		</div>
 		
-		
+		<?php
+if ((isset($haya_post_like_config['open_post'])
+	&& $haya_post_like_config['open_post'] == 1)
+	&& (isset($haya_post_like_config['open_hot_like'])
+	&& $haya_post_like_config['open_hot_like'] == 1)
+) {
+?>
+
+	<?php if (!empty($haya_post_like_hot_posts) && $page == 1) { ?>
+	<div class="card">
+		<div class="card-body">
+			<div class="card-title">
+				<div class="d-flex justify-content-between">
+					<div>
+						<b><?php echo lang('haya_post_like_hot_post'); ?></b>
+					</div>
+					<div></div>
+				</div>
+			</div>
+			<ul class="list-unstyled postlist m-0">
+				<?php 
+				$haya_post_like_old_postlist = $postlist; 
+				$postlist = $haya_post_like_hot_posts;
+				?>
+				
+				<?php include _include(APP_PATH.'view/htm/post_list.inc.htm'); ?>
+				
+				<?php $postlist = $haya_post_like_old_postlist; ?>
+			</ul>
+		</div>
+	</div>
+	
+	<?php } ?>
+
+<?php } ?>
 		
 		<div class="card card-postlist">
 			<div class="card-body">
@@ -96,7 +307,62 @@
 						</div>
 						
 						<div>
-							
+							<?php 
+if ((isset($haya_post_info_config['show_see_first_floor']) 
+	&& $haya_post_info_config['show_see_first_floor'] == 1)
+	|| (isset($haya_post_info_config['show_post_sort']) 
+	&& $haya_post_info_config['show_post_sort'] == 1)
+) { 
+?>	
+	<div class="postlist-sort d-inline-block haya-post-info-post-orderby" id="postlist" data-tid="<?php echo $thread['tid']; ?>">
+		<?php if (isset($haya_post_info_config['show_see_first_floor']) && $haya_post_info_config['show_see_first_floor'] == 1) { ?>	
+			<span class="haya-post-info-see-lz">
+				<span class="text-grey small">
+					<?php if (!empty($haya_post_info_see_user) && $haya_post_info_see_user == $thread['uid']) { ?>
+						<?php if (!empty($haya_post_info_orderby)) { ?>
+							<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid'], array('orderby' => $haya_post_info_orderby));?>">查看全部</a>
+						<?php } else { ?>
+							<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid']);?>">查看全部</a>
+						<?php } ?>
+					<?php } else { ?>
+						<?php if (!empty($haya_post_info_orderby)) { ?>
+							<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid'], array('orderby' => $haya_post_info_orderby, 'user' => $thread['uid']));?>">只看楼主</a>
+						<?php } else { ?>
+							<a class="text-grey" tabindex="1" href="<?php echo url('thread-'.$thread['tid'], array('user' => $thread['uid']));?>">只看楼主</a>
+						<?php } ?>
+					<?php } ?>
+				</span>		
+			</span>
+		<?php } ?>
+		
+		<?php if (isset($haya_post_info_config['show_post_sort']) && $haya_post_info_config['show_post_sort'] == 1) { ?>	
+			<span class="haya-post-info ml-2">
+				<?php if (!empty($haya_post_info_see_user)) { ?>
+					<?php if ($haya_post_info_orderby == 'desc') { ?>
+						<a title="点击更改排序" tabindex="1" class="text-grey small haya-post-sort-btn" href="<?php echo url('thread-'.$thread['tid'], array('sort' => 'asc', 'user' => $haya_post_info_see_user));?>#postlist">
+							<i class="icon-sort-numeric-desc" class="desc"></i>
+						</a>
+					<?php } else { ?>
+						<a title="点击更改排序" tabindex="1" class="text-grey small haya-post-sort-btn" href="<?php echo url('thread-'.$thread['tid'], array('sort' => 'desc', 'user' => $haya_post_info_see_user));?>#postlist">
+							<i class="icon-sort-numeric-asc" class="asc"></i>
+						</a>
+					<?php } ?>
+				<?php } else { ?>
+					<?php if ($haya_post_info_orderby == 'desc') { ?>
+						<a title="点击更改排序" tabindex="1" class="text-grey small haya-post-sort-btn" href="<?php echo url('thread-'.$thread['tid'], array('sort' => 'asc'));?>#postlist">
+							<i class="icon-sort-numeric-desc" class="desc"></i>
+						</a>
+					<?php } else { ?>
+						<a title="点击更改排序" tabindex="1" class="text-grey small haya-post-sort-btn" href="<?php echo url('thread-'.$thread['tid'], array('sort' => 'desc'));?>#postlist">
+							<i class="icon-sort-numeric-asc" class="asc"></i>
+						</a>
+					<?php } ?>
+				<?php } ?>
+			</span>
+		<?php } ?>
+	</div>
+
+<?php } ?>
 						</div>
 					</div>
 				</div>
@@ -189,7 +455,10 @@
 							<span class="text-muted"><?php echo lang('posts');?></span><br>
 							<b><?php echo $thread['user']['posts'];?></b>
 						</td>
-						
+												<td>
+							<span class="text-muted"><?php echo lang('digests');?></span><br>
+							<b><?php echo $thread['user']['digests'];?></b>
+						</td>
 						<td>
 							<span class="text-muted"><?php echo lang('create_rank');?></span><br>
 							<b><?php echo $thread['user']['uid'];?></b>
@@ -200,7 +469,62 @@
 			</div>
 		</div>
 		
-		
+		<div class="form-group">
+	<form action="<?php echo url('search');?>" id="search_form">
+		<div class="input-group mb-3">
+			<input type="text" class="form-control" placeholder="<?php echo lang('keyword');?>" name="keyword">
+			<div class="input-group-append">
+				<button class="btn btn-primary" type="submit"><?php echo lang('search');?></button>
+			</div>
+		</div>
+	</form>
+</div>		<?php
+			$_threadlist = mythread_find_by_uid($thread['uid'], 1, 10);
+						
+			// 过滤没有权限访问的主题 / filter no permission thread
+			thread_list_access_filter($_threadlist, $gid);
+
+		?>
+		<div class="card">
+			<div class="card-body">
+				<h6 class="card-title">作者最近主题：</h6>
+				<ul class="small break-all">
+					<?php foreach($_threadlist as $_thread) { ?>
+					<li class="line-height-2">
+						<a href="<?php echo url("thread-$_thread[tid]");?>">
+							<?php echo $_thread['subject'];?>
+						</a>
+					</li>
+					<?php } ?>
+				</ul>
+			</div>
+		</div><?php
+			$_forumlist = thread__find(array('fid'=>$forum['fid']), array('views'=>-1), 1, 5);
+			// 过滤没有权限访问的主题 / filter no permission thread
+			thread_list_access_filter($_threadlist, $gid);
+
+?>
+<div class="card">
+			<div class="card-header">
+				<h6 class="card-title">版块热门：</h6>
+			</div>
+				<div class="card-body py-3">
+			<table class="table table-hover threadlist">
+			<tbody>
+					<?php foreach($_forumlist as $_fthread) { ?>
+			<tr>
+				<td>
+					<div>
+						<a href="<?php echo url("thread-$_fthread[tid]");?>" style='font-size:12px;color:#343a40;'><?php echo $_fthread['subject'];?></a>
+					</div>
+				</td>
+			</tr>
+					<?php } ?>
+				</div>
+			</tbody>
+			</table>
+</div>
+
 		
 	</div>
 </div>
@@ -310,3 +634,168 @@ $('li[data-active="fid-<?php echo $fid;?>"]').addClass('active');
 jmessage.val('<?php echo lang('thread_has_already_closed');?>').attr('readonly', 'readonly');
 </script>
 <?php } ?>
+
+<script>
+    $.require('plugin/ccreed_img_layer/view/js/img_layer.js');
+</script>
+
+<script src="plugin/ccreed_img_layer/view/js/ekko-lightbox.min.js"></script><script>
+<?php
+if (isset($haya_post_like_config['open_thread'])
+	&& $haya_post_like_config['open_thread'] == 1
+) {
+?>
+	<?php if ($uid) { ?>
+	$(document).on('click', '.js-haya-post-like-thread-add', function() {
+		$(this).attr("disabled", "disabled");
+
+		var thiz = $(this);
+		var pid = thiz.attr("data-pid");
+		var url = '<?php echo url("post-post_like-create");?>';
+		$.xpost(url, {'pid': pid}, function(code, msg){
+			if (code == 1) {
+				thiz.removeClass('js-haya-post-like-thread-add')
+					.addClass('js-haya-post-like-thread-del')				
+					.attr('title', '<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like');?>');		
+			
+				thiz.find(".icon").removeClass('icon-thumbs-o-up')
+					.addClass('icon-thumbs-up')
+					.attr("aria-label", '<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like');?>');
+					
+				thiz.find(".haya-post-like-thread-btn")
+					.text('<?php echo lang('haya_post_like_has_like');?>');
+					
+				$(".haya-post-like-thread-user-count").text(msg.count);			
+			} else {
+				$.alert(msg);
+			}
+			
+			thiz.removeAttr("disabled");
+		});
+	});
+	
+	<?php if ($haya_post_like_is_delete) { ?>
+	$(document).on('click', '.js-haya-post-like-thread-del', function() {
+		$(this).attr("disabled", "disabled");
+
+		var thiz = $(this);
+		var pid = thiz.attr("data-pid");
+		var url = '<?php echo url("post-post_like-delete");?>';
+		$.xpost(url, {'pid': pid}, function(code, msg) {
+			if (code == 1) {
+				thiz.removeClass('js-haya-post-like-thread-del')
+					.addClass('js-haya-post-like-thread-add')				
+					.attr('title', '<?php echo lang('haya_post_like_like_thread');?>');		
+			
+				thiz.find(".icon").removeClass('icon-thumbs-up')
+					.addClass('icon-thumbs-o-up')
+					.attr("aria-label", '<?php echo lang('haya_post_like_like_thread');?>');
+					
+				thiz.find(".haya-post-like-thread-btn")
+					.text('<?php echo lang('haya_post_like_like');?>');
+					
+				$(".haya-post-like-thread-user-count").text(msg.count);			
+			} else {
+				$.alert(msg);
+			}
+			
+			thiz.removeAttr("disabled");
+		});
+	});
+	<?php } ?>
+	
+	<?php } else { ?>
+	$(document).on('click', '.js-haya-post-like-thread-tip', function() {
+		$.confirm('<?php echo lang('haya_post_like_tip_title'); ?>', function() {
+			window.location = "<?php echo url('user-login'); ?>";
+		}, {'body': '<?php echo lang('haya_post_like_login_like_thread_tip'); ?>'});		
+	});
+	<?php } ?>
+<?php } ?>
+
+<?php
+if (isset($haya_post_like_config['open_post'])
+	&& $haya_post_like_config['open_post'] == 1
+) {
+?>
+	<?php if ($uid) { ?>
+	$(document).on('click', '.js-haya-post-like-post-add', function() {
+		var thiz = $(this);
+		
+		thiz.removeClass('js-haya-post-like-post-add');
+		
+		var pid = thiz.attr("data-pid");
+		var url = '<?php echo url("post-post_like-create");?>';	
+		$.xpost(url, {'pid': pid}, function(code, msg){
+			if (code == 1) {
+				thiz.removeClass('js-haya-post-like-post-add')
+					.addClass('js-haya-post-like-post-del')				
+					.addClass('haya-post-like-loved')				
+					.attr('title', '<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like');?>');		
+			
+				thiz.find(".icon").removeClass('icon-thumbs-o-up')
+					.addClass('icon-thumbs-up')
+					.attr("aria-label", '<?php echo $haya_post_like_is_delete ? lang('haya_post_like_unlike') : lang('haya_post_like_has_like');?>');
+					
+				thiz.find(".haya-post-like-post-user-count").text(msg.count);			
+			} else {
+				thiz.addClass('js-haya-post-like-post-add');
+				$.alert(msg);
+			}
+		});
+	});
+	
+	<?php if ($haya_post_like_is_delete) { ?>
+	$(document).on('click', '.js-haya-post-like-post-del', function() {
+		var thiz = $(this);
+		
+		thiz.removeClass('js-haya-post-like-post-del');
+		
+		var pid = thiz.attr("data-pid");
+		var url = '<?php echo url("post-post_like-delete");?>';
+		$.xpost(url, {'pid': pid}, function(code, msg){
+			if (code == 1) {
+				thiz.removeClass('js-haya-post-like-post-del')
+					.addClass('js-haya-post-like-post-add')	
+					.removeClass('haya-post-like-loved')
+					.attr('title', '<?php echo lang('haya_post_like_like_post');?>');		
+			
+				thiz.find(".icon").removeClass('icon-thumbs-up')
+					.addClass('icon-thumbs-o-up')
+					.attr("aria-label", '<?php echo lang('haya_post_like_like_post');?>');
+					
+				thiz.find(".haya-post-like-post-user-count").text(msg.count);			
+			} else {
+				thiz.addClass('js-haya-post-like-post-del');
+				$.alert(msg);
+			}
+		});
+	});
+	<?php } ?>
+	
+	<?php } else { ?>
+	$(document).on('click', '.js-haya-post-like-post-tip', function() {	
+		$.confirm('<?php echo lang('haya_post_like_tip_title'); ?>', function() {
+			window.location = "<?php echo url('user-login'); ?>";
+		}, {'body': '<?php echo lang('haya_post_like_login_like_post_tip'); ?>'});		
+	});
+	<?php } ?>
+<?php } ?>
+</script>
+<script>
+jsearch_form = $('#search_form');
+jsearch_form.on('submit', function() {
+	var keyword = jsearch_form.find('input[name="keyword"]').val();
+	var url = xn.url('search-'+xn.urlencode(keyword));
+	window.location = url;
+	return false;
+});
+</script><script>
+// 语法高亮
+if($('div.message pre').length > 0) {
+	$.require_css('plugin/xn_syntax_hightlighter/syntax_hightlighter/syntax.css');
+	$.require('plugin/xn_syntax_hightlighter/syntax_hightlighter/syntax.js', function() {
+		SyntaxHighlighter.all();
+	});
+}
+</script>

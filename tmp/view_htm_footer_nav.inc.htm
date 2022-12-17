@@ -4,12 +4,54 @@
 			<div class="col">
 				
 				Powered by <a href="http://bbs.xiuno.com/" target="_blank" class="text-muted"><b>Xiuno BBS <span><?php echo $conf['version'];?></span></b></a>
-				
+				<!--插件模板开发修改/网站维护以及建站过程中如有任何问题请联系【技术维护】QQ：1198845956-->
+<?php
+//获取统计数据
+$wish_accesscount = setting_get('wish_accesscount');
+$wish_accesscount['count'] = !empty($wish_accesscount['count']) ? $wish_accesscount['count'] : 0;
+$words = !empty($wish_accesscount['words']) ? $wish_accesscount['words'] : '您是第<b>{count}</b>位访客';
+
+//统计访客
+if(!_COOKIE('_wish_accesscount_visited')){
+    $wish_accesscount['count']++;
+    setting_set('wish_accesscount', $wish_accesscount);
+    //服务器端设置cookie，会报headers already sent错误
+    //setcookie('_wish_accesscount_visited', 1, time()+86400, '/', "", false, true);
+}
+
+//展示文字
+$words = str_replace('{count}', $wish_accesscount['count']?:1, $words);
+echo $words;
+?><!--插件模板开发修改/网站维护以及建站过程中如有任何问题请联系【技术维护】QQ：515138-->
+<?php 
+//本站已运行多长时间
+date_default_timezone_set("PRC");
+$now = time();
+$jianZhanTime = setting_get('zidiu_saveTime');
+$JZT = strtotime("$jianZhanTime");
+if(ceil($now - $JZT)/86400 == NULL){
+	echo '建站天数为0天';
+}else{
+   echo '本站已安全运行了<font color="red">'.ceil(($now - $JZT)/86400).'</font>天。';
+}
+?><!--zidiu.com/技术维护QQ：515138-->
+<a href="http://www.miitbeian.gov.cn/" target="_blank" style="color:#868e96;text-decoration:none;">
+<?php
+
+echo setting_get('footer_footer_left_end_htm');
+
+?></a>
 			</div>
 			<div class="col text-right">
 				
 				Processed: <b><?php echo substr(microtime(1) - $starttime, 0, 5);?></b>, SQL: <b><?php echo count($db->sqls);?></b>
-				
+				<!--zidiu.com/技术维护QQ：515138-->
+<a href="http://www.miitbeian.gov.cn/" target="_blank" style="color:#868e96;text-decoration:none;">
+<?php
+
+echo setting_get('footer_footer_right_end_htm');
+
+?></a>
 			</div>
 		</div>
 	</div>

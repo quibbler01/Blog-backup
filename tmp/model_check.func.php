@@ -48,6 +48,11 @@ function is_username($username, &$err = '') {
 		return FALSE;
 	}
 	
+
+ elseif(qt_check_sensitive_word($username, 'username_sensitive_words', $er)) {
+		$err = lang('username_contain_sensitive_word') . $er;
+		return FALSE;
+	}
 	return TRUE;
 }
 
@@ -69,5 +74,21 @@ function is_password($password, &$err = '') {
 }
 
 
+function qt_check_sensitive_word($s, $type, &$error) {
+		$sensitive_words = kv_get('qt_sensitive_words');
+		if(!isset($sensitive_words[$type])  || !is_array($sensitive_words[$type])) {
+			return false;
+		}
+		foreach($sensitive_words[$type] as $v) {
+			if(empty($v)) {
+				continue;
+			}
+			if(strpos(strtolower($s),strtolower($v)) !== false) {
+				$error = $v;
+				return true;
+			}
+		}
+		return false;
+	}
 
 ?>

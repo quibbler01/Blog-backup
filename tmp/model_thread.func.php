@@ -113,6 +113,12 @@ function thread_create($arr, &$pid) {
 	forum_list_cache_delete();
 	
 	
+	if(search_type() == 'fulltext') {
+		$s = strip_tags($subject.' '.$message);
+		$words = search_cn_encode($s);
+		db_create('thread_search', array('tid'=>$tid, 'message'=>$words));
+	}
+
 	
 	return $tid;
 }
@@ -182,6 +188,9 @@ function thread_delete($tid) {
 	$uid = $thread['uid'];
 	
 	
+	thread_digest_delete($tid, $uid, $fid);
+	db_delete('thread_search', array('tid'=>$tid));
+
 	
 	// 删除所有回帖，同时更新 posts 统计数
 	$n = post_delete_by_tid($tid);

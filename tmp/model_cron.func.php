@@ -61,7 +61,7 @@ function cron_run($force = 0) {
 			// 如果是升级过来和采集的数据，这里会很卡。
 			// table_day_cron($time - 8 * 3600);
 			
-			
+				ipaccess_truncate();
 			
 			cache_delete('cron_lock_2');
 		}
